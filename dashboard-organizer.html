@@ -1,0 +1,914 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sports League - Organizer Dashboard</title>
+    <style>
+        /* =====================================================================
+           COMMON STYLE - Same on every page (Navbar, Footer, Buttons, Forms,
+           Tables, Cards, Modal). Theme: Navy #1a1a2e + Yellow #ffcc00
+           ===================================================================== */
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: Arial, Helvetica, sans-serif; }
+        body { background-color: #f2f2f2; color: #333; display: flex; flex-direction: column; min-height: 100vh; }
+        button { font-family: inherit; }
+
+        /* ---------- Navbar ---------- */
+        .navbar { background-color: #1a1a2e; color: white; padding: 12px 30px; display: flex; justify-content: space-between; align-items: center; gap: 15px; position: sticky; top: 0; z-index: 900; box-shadow: 0 2px 8px rgba(0,0,0,0.25); }
+        .logo { display: flex; align-items: center; gap: 10px; font-size: 21px; font-weight: bold; color: white; text-decoration: none; white-space: nowrap; }
+        .logo-icon { background-color: #ffcc00; color: #1a1a2e; width: 38px; height: 38px; display: flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 16px; font-weight: bold; }
+        .nav-links { display: flex; align-items: center; gap: 4px; flex-wrap: nowrap; }
+        .nav-links a { color: white; text-decoration: none; font-size: 14px; padding: 8px 10px; border-radius: 6px; white-space: nowrap; transition: 0.2s; }
+        .nav-links a:hover { color: #ffcc00; background: rgba(255,255,255,0.07); }
+        .nav-links a.active { color: #1a1a2e; background: #ffcc00; font-weight: bold; }
+        .nav-user { display: flex; flex-direction: column; line-height: 1.25; margin: 0 8px 0 12px; padding-left: 12px; border-left: 1px solid rgba(255,255,255,0.25); max-width: 190px; }
+        .nav-user b { font-size: 13px; color: #ffcc00; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .nav-user small { font-size: 11px; color: #cfcfdd; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .btn-logout { background-color: #ff4444; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: bold; transition: 0.2s; }
+        .btn-logout:hover { background-color: #d93636; }
+        .nav-toggle { display: none; background: #ffcc00; color: #1a1a2e; border: none; width: 40px; height: 38px; border-radius: 6px; font-size: 20px; font-weight: bold; cursor: pointer; }
+
+        /* ---------- Layout ---------- */
+        .container { padding: 30px; max-width: 1150px; margin: 0 auto; width: 100%; flex: 1; }
+        .container h2 { color: #1a1a2e; font-size: 26px; margin-bottom: 5px; }
+        .container > p { color: #777777; margin-bottom: 25px; }
+        .section-title { font-size: 20px; color: #1a1a2e; margin: 30px 0 15px 0; font-weight: bold; border-left: 4px solid #ffcc00; padding-left: 10px; }
+        .footer { background-color: #1a1a2e; color: white; text-align: center; padding: 18px; margin-top: auto; font-size: 14px; letter-spacing: 0.5px; }
+
+        /* ---------- Forms ---------- */
+        .form-box { background-color: white; padding: 25px; border-radius: 10px; box-shadow: 0 2px 10px rgba(26,26,46,0.08); margin-bottom: 30px; }
+        .form-box h3 { color: #1a1a2e; margin-bottom: 15px; }
+        .form-row { display: flex; gap: 15px; flex-wrap: wrap; }
+        .form-group { flex: 1; min-width: 180px; }
+        .form-group label { display: block; font-weight: bold; font-size: 14px; color: #1a1a2e; margin-bottom: 5px; }
+        .form-group input, .form-group select, .search-box, .filter-select { width: 100%; padding: 12px; border: 1px solid #cccccc; border-radius: 6px; font-size: 15px; outline: none; background: white; transition: 0.2s; }
+        .form-group input:focus, .form-group select:focus, .search-box:focus, .filter-select:focus { border-color: #ffcc00; box-shadow: 0 0 0 3px rgba(255,204,0,0.25); }
+        .search-row { display: flex; gap: 15px; margin-bottom: 18px; flex-wrap: wrap; }
+        .search-box { flex: 2; min-width: 200px; width: auto; }
+        .filter-select { flex: 1; min-width: 160px; width: auto; }
+        .filter-row { display: flex; gap: 15px; flex-wrap: wrap; margin-bottom: 15px; }
+
+        /* ---------- Buttons ---------- */
+        .btn-add { background-color: #ffcc00; color: #1a1a2e; border: none; padding: 13px 30px; border-radius: 6px; font-size: 15px; font-weight: bold; cursor: pointer; margin-top: 15px; margin-right: 8px; transition: 0.2s; }
+        .btn-add:hover { background-color: #e6b800; transform: translateY(-1px); box-shadow: 0 3px 8px rgba(0,0,0,0.15); }
+        .btn-edit, .btn-delete, .btn-stats, .btn-view, .btn-small, .btn-green, .btn-red, .btn-blue, .btn-grey, .btn-orange { border: none; padding: 7px 13px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: bold; color: white; margin: 2px 3px 2px 0; transition: 0.2s; }
+        .btn-edit, .btn-blue, .btn-view { background-color: #0984e3; }
+        .btn-delete, .btn-red { background-color: #ff4444; }
+        .btn-stats, .btn-green { background-color: #00b894; }
+        .btn-orange { background-color: #e17055; }
+        .btn-grey { background-color: #ddd; color: #333; }
+        .btn-edit:hover, .btn-delete:hover, .btn-stats:hover, .btn-view:hover, .btn-small:hover, .btn-green:hover, .btn-red:hover, .btn-blue:hover, .btn-grey:hover, .btn-orange:hover { opacity: 0.88; transform: translateY(-1px); }
+        button:disabled { background: #ccc !important; color: #888 !important; cursor: not-allowed !important; transform: none !important; }
+
+        /* ---------- Tables ---------- */
+        .table-box { background-color: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 10px rgba(26,26,46,0.08); overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; min-width: 560px; }
+        th { background-color: #1a1a2e; color: white; padding: 12px; text-align: left; font-size: 14px; white-space: nowrap; }
+        td { padding: 12px; border-bottom: 1px solid #eeeeee; font-size: 14px; vertical-align: middle; }
+        tbody tr:hover { background: #fffbe8; }
+        .empty-msg { text-align: center; color: #999999; padding: 20px; }
+
+        /* ---------- Badges ---------- */
+        .badge { background-color: #ffcc00; color: #1a1a2e; padding: 4px 11px; border-radius: 20px; font-size: 12px; font-weight: bold; display: inline-block; }
+        .badge-green { background-color: #d4f8e8; color: #00875a; padding: 4px 11px; border-radius: 20px; font-size: 12px; font-weight: bold; display: inline-block; }
+        .badge-grey { background-color: #eee; color: #777; padding: 4px 11px; border-radius: 20px; font-size: 12px; font-weight: bold; display: inline-block; }
+        .badge-red { background-color: #ffe0e0; color: #ff4444; padding: 4px 11px; border-radius: 20px; font-size: 12px; font-weight: bold; display: inline-block; }
+        .avatar { width: 32px; height: 32px; background-color: #1a1a2e; color: #ffcc00; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 14px; font-weight: bold; flex-shrink: 0; }
+        .role-badge { padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: bold; display: inline-block; }
+        .role-batsman { background-color: #ffeaa7; color: #2d3436; }
+        .role-bowler { background-color: #dfe6e9; color: #2d3436; }
+        .role-allrounder { background-color: #55efc4; color: #2d3436; }
+        .role-keeper { background-color: #fab1a0; color: #2d3436; }
+        .role-general { background-color: #dfe6e9; color: #2d3436; }
+        .status-badge { padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: bold; display: inline-block; }
+        .status-waiting { background-color: #fff8d6; color: #856404; border: 1px solid #ffcc00; }
+        .status-approved, .status-assigned { background-color: #e6f9f1; color: #00875a; border: 1px solid #00b894; }
+        .status-pending, .status-accepted { background-color: #ffeaa7; color: #2d3436; border: 1px solid #fdcb6e; }
+
+        /* ---------- Modal (popup) ---------- */
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.6); z-index: 1000; justify-content: center; align-items: center; padding: 15px; }
+        .modal-overlay.active, .modal-overlay.show { display: flex; }
+        .modal-box { background-color: white; width: 100%; max-width: 520px; max-height: 90vh; overflow-y: auto; border-radius: 12px; padding: 25px; }
+        .modal-box h3 { color: #1a1a2e; margin-bottom: 5px; }
+        .modal-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 5px; gap: 10px; }
+        .modal-header h3 { font-size: 20px; }
+        .modal-header p { color: #777; font-size: 13px; margin-top: 4px; }
+        .btn-close { background-color: #eee; border: none; width: 32px; height: 32px; border-radius: 50%; cursor: pointer; font-size: 16px; font-weight: bold; flex-shrink: 0; }
+        .modal-actions { display: flex; gap: 10px; margin-top: 20px; }
+        .hint { font-size: 12px; color: #999; margin-top: 4px; }
+
+        /* ---------- Small helpers ---------- */
+        .note { background: #fff8d6; border: 1px solid #ffe08a; color: #664d03; padding: 12px; border-radius: 8px; font-size: 13px; margin-bottom: 20px; }
+        .muted { color: #777; font-size: 13px; }
+
+        /* ---------- Responsive ---------- */
+        @media (max-width: 1100px) {
+            .navbar { flex-wrap: wrap; padding: 10px 18px; }
+            .nav-toggle { display: block; }
+            .nav-links { display: none; width: 100%; flex-direction: column; align-items: stretch; gap: 4px; padding-top: 10px; }
+            .nav-links.open { display: flex; }
+            .nav-links a { padding: 11px 12px; }
+            .nav-user { border-left: none; margin: 6px 0; padding: 8px 12px; max-width: 100%; background: rgba(255,255,255,0.06); border-radius: 6px; }
+            .btn-logout { width: 100%; padding: 11px; }
+        }
+        @media (max-width: 700px) {
+            .container { padding: 18px 14px; }
+            .container h2 { font-size: 22px; }
+            .form-group { min-width: 100%; }
+            .form-box { padding: 18px; }
+            .btn-add { width: 100%; margin-right: 0; }
+            .search-box, .filter-select { min-width: 100%; }
+            .modal-actions { flex-direction: column; }
+        }
+
+        /* ===== Organizer dashboard only style ===== */
+        .stats { display: flex; gap: 20px; flex-wrap: wrap; margin-bottom: 30px; }
+        .stat-card { background-color: white; padding: 25px; border-radius: 10px; flex: 1; min-width: 200px; box-shadow: 0 2px 10px rgba(26,26,46,0.08); text-align: center; transition: 0.2s; }
+        .stat-card:hover { transform: translateY(-3px); box-shadow: 0 6px 16px rgba(0,0,0,0.12); }
+        .stat-card h3 { font-size: 32px; color: #1a1a2e; margin-bottom: 5px; }
+        .stat-card p { color: #777777; font-size: 14px; margin: 0 !important; }
+        .stat-card:nth-child(1) { border-top: 4px solid #ffcc00; }
+        .stat-card:nth-child(2) { border-top: 4px solid #00b894; }
+        .stat-card:nth-child(3) { border-top: 4px solid #e17055; }
+        .stat-card:nth-child(4) { border-top: 4px solid #6c5ce7; }
+        .two-box { display: flex; gap: 20px; flex-wrap: wrap; margin-bottom: 10px; }
+        .two-box .form-box { flex: 1; min-width: 280px; margin-bottom: 0; }
+        .form-box label { display: block; font-size: 13px; color: #555; margin: 10px 0 5px; font-weight: bold; }
+        .form-box input, .form-box select { width: 100%; padding: 11px; border: 1px solid #ccc; border-radius: 6px; font-size: 14px; outline: none; }
+        .form-box input:focus, .form-box select:focus { border-color: #ffcc00; box-shadow: 0 0 0 3px rgba(255,204,0,0.25); }
+        .btn-yellow { background-color: #ffcc00; border: none; padding: 11px 18px; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: bold; margin-top: 15px; width: 100%; transition: 0.2s; }
+        .btn-yellow:hover { background-color: #e6b800; }
+        .filter-bar { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 15px; }
+        .filter-btn { padding: 8px 16px; border: 1px solid #ccc; background: white; border-radius: 20px; cursor: pointer; font-size: 13px; font-weight: bold; transition: 0.2s; }
+        .filter-btn:hover { border-color: #1a1a2e; }
+        .filter-btn.active { background: #1a1a2e; color: white; border-color: #1a1a2e; }
+        .list-box { background-color: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 10px rgba(26,26,46,0.08); }
+        .row { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #eeeeee; gap: 10px; flex-wrap: wrap; }
+        .row:last-child { border-bottom: none; }
+        .row b { color: #1a1a2e; }
+        .row span { color: #777777; font-size: 14px; }
+        .row .badge, .row .badge-green, .row .badge-grey { font-size: 12px; }
+        .row .badge-green { color: #00875a; }
+        .row .badge-grey { color: #777; }
+        .small-select { padding: 8px; border: 1px solid #cccccc; border-radius: 6px; font-size: 14px; outline: none; max-width: 220px; }
+        .actions { display: flex; gap: 20px; flex-wrap: wrap; margin-bottom: 10px; }
+        .action-card { background-color: white; padding: 25px; border-radius: 10px; flex: 1; min-width: 200px; box-shadow: 0 2px 10px rgba(26,26,46,0.08); text-align: center; text-decoration: none; color: #1a1a2e; transition: 0.2s; }
+        .action-card:hover { background-color: #fff8d6; transform: translateY(-3px); }
+        .action-icon { width: 55px; height: 55px; background-color: #1a1a2e; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 12px auto; }
+        .action-card h4 { margin-bottom: 5px; }
+        .action-card p { font-size: 13px; margin: 0 !important; }
+        .edit-box { width: 100%; background: #fffbe6; border: 1px dashed #ffcc00; padding: 12px; border-radius: 8px; margin-top: 8px; display: none; }
+        .empty { text-align: center; color: #999; }
+        @media (max-width: 700px) { .row { flex-direction: column; align-items: flex-start; } .small-select { max-width: 100%; width: 100%; } }
+    </style>
+</head>
+<body>
+
+    <div id="navbar"></div>
+
+    <div class="container">
+        <h2 id="welcome-text">Welcome, Organizer</h2>
+        <p>Organize matches, manage teams and book grounds from here.</p>
+
+        <!-- STATS -->
+        <div class="stats">
+            <div class="stat-card"><h3 id="total-teams">0</h3><p>Total Teams</p></div>
+            <div class="stat-card"><h3 id="total-tournaments">0</h3><p>Total Tournaments</p></div>
+            <div class="stat-card"><h3 id="total-requests">0</h3><p>Pending Requests</p></div>
+            <div class="stat-card"><h3 id="total-assigned">0</h3><p>Assigned Players</p></div>
+        </div>
+
+        <!-- CREATE TEAM + CREATE TOURNAMENT -->
+        <div class="two-box">
+            <div class="form-box">
+                <h3>1. Create Team</h3>
+                <label>Team Name</label>
+                <input type="text" id="teamName" placeholder="Example: Phagwara Kings" onkeydown="if(event.key==='Enter') createTeam()">
+                <button class="btn-yellow" onclick="createTeam()">Create Team</button>
+                <p style="font-size:12px; margin-top:10px; margin-bottom:0;">Team will be created without sport. You can assign sport later.</p>
+            </div>
+            <div class="form-box">
+                <h3>2. Create Tournament</h3>
+                <label>Tournament Name</label>
+                <input type="text" id="tournamentName" placeholder="Example: Inter College Cup" onkeydown="if(event.key==='Enter') createTournament()">
+                <label>Select Sport</label>
+                <select id="tournamentSport">
+                    <option value="Cricket">Cricket</option>
+                    <option value="Football">Football</option>
+                    <option value="Basketball">Basketball</option>
+                    <option value="Badminton">Badminton</option>
+                    <option value="Kabaddi">Kabaddi</option>
+                    <option value="Volleyball">Volleyball</option>
+                </select>
+                <button class="btn-yellow" onclick="createTournament()">Create Tournament</button>
+            </div>
+        </div>
+
+        <!-- MY TEAMS -->
+        <div class="section-title">My Teams</div>
+        <div class="filter-bar" id="team-filter">
+            <button class="filter-btn active" onclick="filterTeams('All', this)">All</button>
+            <button class="filter-btn" onclick="filterTeams('Cricket', this)">Cricket</button>
+            <button class="filter-btn" onclick="filterTeams('Football', this)">Football</button>
+            <button class="filter-btn" onclick="filterTeams('Basketball', this)">Basketball</button>
+            <button class="filter-btn" onclick="filterTeams('Badminton', this)">Badminton</button>
+            <button class="filter-btn" onclick="filterTeams('Kabaddi', this)">Kabaddi</button>
+            <button class="filter-btn" onclick="filterTeams('Volleyball', this)">Volleyball</button>
+            <button class="filter-btn" onclick="filterTeams('No Sport', this)">No Sport Yet</button>
+        </div>
+        <div class="list-box" id="teams-list"><p class="empty">No teams yet. Create your first team.</p></div>
+
+        <!-- MY TOURNAMENTS -->
+        <div class="section-title">My Tournaments</div>
+        <div class="list-box" id="tournaments-list"><p class="empty">No tournaments yet.</p></div>
+
+        <!-- PENDING REQUESTS -->
+        <div class="section-title">Pending Requests - Players Want To Join</div>
+        <div class="list-box" id="pending-list"><p class="empty">No pending requests.</p></div>
+
+        <!-- ACCEPTED PLAYERS -->
+        <div class="section-title">Accepted Players - Assign To Team</div>
+        <div class="list-box" id="accepted-list"><p class="empty">No accepted players yet.</p></div>
+
+        <!-- ASSIGNED PLAYERS -->
+        <div class="section-title">Players Assigned To Teams</div>
+        <div class="list-box" id="assigned-list"><p class="empty">No players assigned to any team yet.</p></div>
+
+        <!-- QUICK ACTIONS -->
+        <div class="section-title">Quick Actions</div>
+        <div class="actions">
+            <a href="matches.html" class="action-card"><div class="action-icon"><span style="font-size:24px;">&#127942;</span></div><h4>Create Match</h4><p>Schedule New Match</p></a>
+            <a href="grounds.html" class="action-card"><div class="action-icon"><span style="font-size:24px;">&#128205;</span></div><h4>Book Ground</h4><p>Check &amp; Book Ground</p></a>
+            <a href="teams.html" class="action-card"><div class="action-icon"><span style="font-size:24px;">&#128101;</span></div><h4>View Teams</h4><p>See All Teams</p></a>
+            <a href="players.html" class="action-card"><div class="action-icon"><span style="font-size:24px;">&#127939;</span></div><h4>Manage Players</h4><p>Edit Players &amp; Stats</p></a>
+        </div>
+
+        <!-- UPCOMING MATCHES -->
+        <div class="section-title">Upcoming Matches</div>
+        <div class="list-box" id="match-list"><p class="empty">No matches yet. Create your first match.</p></div>
+    </div>
+
+    <div class="footer"><p>&copy; 2026 Sports League | Made for College Project</p></div>
+
+    <script>
+        var PAGE_ROLES = ["organizer"];      // ONLY organizer can open this page
+        var PAGE_NAME = "dashboard";
+        // =====================================================================
+        //  COMMON CODE - same code is used on every page, so every page reads
+        //  and writes the SAME localStorage keys (single source of truth):
+        //  users, teams, tournaments, matches, grounds, players,
+        //  joinRequests, playerStats, sportTemplates
+        // =====================================================================
+
+        // ---------- 1. Small helper functions ----------
+        // Read a key from localStorage (returns fallback if empty / broken)
+        function getData(key, fallback) {
+            try {
+                var v = JSON.parse(localStorage.getItem(key));
+                return (v === null || v === undefined) ? fallback : v;
+            } catch (e) { return fallback; }
+        }
+        // Save a value in localStorage
+        function setData(key, value) { localStorage.setItem(key, JSON.stringify(value)); }
+        // Make text safe before putting it inside innerHTML
+        function esc(text) {
+            return String(text === undefined || text === null ? "" : text)
+                .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+        }
+        function normEmail(e) { return String(e || "").trim().toLowerCase(); }
+        // Email format check: something@something.xx (no spaces, no quotes)
+        function isValidEmail(e) { return /^[A-Za-z0-9._%+\-]+@[A-Za-z0-9.\-]+\.[A-Za-z]{2,}$/.test(e); }
+        function newId() { return Date.now() * 1000 + Math.floor(Math.random() * 1000); }
+        function sameText(a, b) { return String(a || "").trim().toLowerCase() === String(b || "").trim().toLowerCase(); }
+        // Fill a <select> with options but keep the old selection if it still exists
+        function fillSelect(selectId, firstLabel, items) {
+            var s = document.getElementById(selectId);
+            if (!s) return;
+            var cur = s.value;
+            var html = '<option value="">' + esc(firstLabel) + '</option>';
+            items.forEach(function (i) { html += '<option value="' + esc(i.value) + '">' + esc(i.label) + '</option>'; });
+            s.innerHTML = html;
+            if (cur && items.some(function (i) { return String(i.value) === String(cur); })) s.value = cur;
+        }
+
+        // ---------- 2. Sports settings (used by many pages) ----------
+        var FIXED_SPORTS = ["Cricket", "Football", "Kabaddi", "Volleyball", "Basketball", "Badminton"];
+        var DEFAULT_TEMPLATES = { "Cricket": ["Matches", "Runs", "Wickets", "Best Score"], "Football": ["Matches", "Goals", "Assists"], "Kabaddi": ["Matches", "Raid Points", "Tackle Points"], "Volleyball": ["Matches", "Points", "Blocks"], "Basketball": ["Matches", "Points", "Rebounds"], "Badminton": ["Matches", "Wins", "Losses"], "Other": ["Matches", "Points"] };
+        var ROLES_BY_SPORT = { "Cricket": ["Batsman", "Bowler", "All-Rounder", "Wicket Keeper"], "Football": ["Striker", "Midfielder", "Defender", "Goalkeeper"], "Kabaddi": ["Raider", "Defender", "All-Rounder"], "Volleyball": ["Spiker", "Setter", "Libero", "Blocker"], "Basketball": ["Point Guard", "Shooting Guard", "Center", "Forward"], "Badminton": ["Singles Player", "Doubles Player"], "Other": ["Player", "Captain", "All-Rounder"] };
+        function isCustomSport(s) { return !!s && FIXED_SPORTS.indexOf(s) === -1; }
+        // Does a sport match the filter value? ("Other" means any custom sport)
+        function sportMatches(sport, filter) {
+            if (filter === "All") return true;
+            if (filter === "Other") return isCustomSport(sport);
+            return sport === filter;
+        }
+        function getSportTemplates() {
+            var t = getData("sportTemplates", null);
+            if (!t) { t = JSON.parse(JSON.stringify(DEFAULT_TEMPLATES)); setData("sportTemplates", t); }
+            return t;
+        }
+        function getTemplateForSport(sport) {
+            var t = getSportTemplates();
+            if (t[sport] && t[sport].length) return t[sport];
+            return t["Other"] || DEFAULT_TEMPLATES["Other"];
+        }
+        function getRolesForSport(sport) { return ROLES_BY_SPORT[sport] || ROLES_BY_SPORT["Other"]; }
+
+        // ---------- 3. Login session + Role based security ----------
+        var SESSION_KEYS = ["userEmail", "userName", "userRole", "currentUser"];
+        function clearSession() { SESSION_KEYS.forEach(function (k) { localStorage.removeItem(k); }); }
+        function dashboardFor(r) {
+            if (r == "admin") return "dashboard-admin.html";
+            if (r == "organizer") return "dashboard-organizer.html";
+            return "dashboard-player.html";
+        }
+        // Returns the logged in user from "users" list. If someone changes the
+        // session by hand (email/role do not match "users") -> returns null.
+        function getSessionUser() {
+            var em = normEmail(localStorage.getItem("userEmail"));
+            var r = localStorage.getItem("userRole");
+            if (!em || !r) return null;
+            var u = getData("users", []).find(function (x) { return normEmail(x.email) === em; });
+            if (!u || u.role !== r) return null;
+            return u;
+        }
+        // Page guard: only allowed roles can stay on the page, others go to login.html
+        function requireLogin(allowedRoles) {
+            if (!allowedRoles) return true;                       // public page
+            var u = getSessionUser();
+            if (u && allowedRoles.indexOf(u.role) !== -1) return true;
+            document.documentElement.style.display = "none";      // hide the page
+            clearSession();
+            alert(u ? "Access Denied" : "Access Denied - Please login first");
+            window.location.href = "login.html";
+            return false;
+        }
+        function logout() { clearSession(); window.location.href = "login.html"; }
+        function goDashboard() { window.location.href = dashboardFor(role); }
+
+        var ACCESS_OK = requireLogin(typeof PAGE_ROLES !== "undefined" ? PAGE_ROLES : null);
+        var currentUser = ACCESS_OK ? getSessionUser() : null;
+        var email = currentUser ? normEmail(currentUser.email) : "";     // logged in email
+        var role = currentUser ? currentUser.role : "";                  // admin / organizer / player
+        var userName = currentUser ? currentUser.name : "";
+        var IS_MANAGER = (role == "admin" || role == "organizer");       // can add / edit / delete
+        // Extra safety inside every Add / Edit / Delete function
+        function requireManager() {
+            if (!IS_MANAGER) { alert("Access Denied - You only have view permission."); return false; }
+            return true;
+        }
+        function getUserName(em) {
+            var u = getData("users", []).find(function (x) { return normEmail(x.email) === normEmail(em); });
+            return u ? u.name : (em || "-");
+        }
+
+        // ---------- 4. Navbar (same on every page, built by one function) ----------
+        function renderNavbar() {
+            var box = document.getElementById("navbar");
+            if (!box) return;
+            var u = getSessionUser();
+            var page = typeof PAGE_NAME !== "undefined" ? PAGE_NAME : "";
+            function link(key, href, text) { return '<a href="' + href + '" class="' + (page == key ? "active" : "") + '">' + text + '</a>'; }
+            var links = "";
+            if (u && typeof PAGE_ROLES !== "undefined" && PAGE_ROLES) {
+                links = link("home", "index.html", "Home") + link("dashboard", dashboardFor(u.role), "Dashboard") + link("teams", "teams.html", "Teams") + link("players", "players.html", "Players") + link("matches", "matches.html", "Matches") + link("grounds", "grounds.html", "Grounds") + link("stats", "stats.html", "Stats") + link("playerstats", "player-stats.html", "Player Stats");
+            } else if (u) {
+                links = link("home", "index.html", "Home") + link("dashboard", dashboardFor(u.role), "Dashboard");
+            } else {
+                links = link("home", "index.html", "Home") + link("login", "login.html", "Login") + link("register", "register.html", "Register");
+            }
+            var userHtml = u ? '<div class="nav-user"><b>' + esc(u.name) + ' (' + esc(u.role) + ')</b><small>' + esc(u.email) + '</small></div><button class="btn-logout" onclick="logout()">Logout</button>' : "";
+            box.className = "navbar";
+            box.innerHTML = '<a class="logo" href="index.html"><div class="logo-icon">SL</div><span>Sports League</span></a>' +
+                '<button class="nav-toggle" onclick="toggleNav()" aria-label="Menu">&#9776;</button>' +
+                '<div class="nav-links" id="nav-links">' + links + userHtml + '</div>';
+        }
+        function toggleNav() { document.getElementById("nav-links").classList.toggle("open"); }
+
+        // ---------- 5. Player helper functions ----------
+        function findPlayer(pEmail) {
+            pEmail = normEmail(pEmail);
+            return getData("players", []).find(function (p) { return normEmail(p.email) === pEmail; });
+        }
+        // Make sure a player record exists (created at register / first login)
+        function ensurePlayerRecord(pName, pEmail) {
+            pEmail = normEmail(pEmail);
+            var players = getData("players", []);
+            var p = players.find(function (x) { return normEmail(x.email) === pEmail; });
+            if (!p) {
+                p = { name: pName, email: pEmail, age: "", team: "", sport: "", role: "Player", status: "Waiting", tournamentId: "", tournamentName: "", assignedBy: "", createdAt: new Date().toLocaleDateString() };
+                players.push(p);
+                setData("players", players);
+            }
+            return p;
+        }
+        // Status rule: has team = Approved, else look at requests
+        function derivePlayerStatus(p, reqs) {
+            if (p.team) return "Approved";
+            var mine = reqs.filter(function (r) { return normEmail(r.playerEmail) === normEmail(p.email); });
+            if (mine.some(function (r) { return r.status === "Accepted"; })) return "Accepted";
+            if (mine.some(function (r) { return r.status === "Pending"; })) return "Pending";
+            return "Waiting";
+        }
+        function getTeamPlayers(teamName) { return getData("players", []).filter(function (p) { return p.team === teamName; }); }
+        // THE ONE function that puts a player in a team / moves / removes him.
+        // It updates players + joinRequests + team captain together.
+        function assignPlayerToTeam(pEmail, teamName, byEmail, requestId) {
+            pEmail = normEmail(pEmail);
+            var players = getData("players", []), teams = getData("teams", []), reqs = getData("joinRequests", []);
+            var p = players.find(function (x) { return normEmail(x.email) === pEmail; });
+            if (!p) return false;
+            var team = teams.find(function (t) { return t.name === teamName; });
+            var oldTeam = p.team || "";
+            if (oldTeam && oldTeam !== teamName) {            // old team loses this captain
+                var ot = teams.find(function (t) { return t.name === oldTeam; });
+                if (ot && ot.captain === p.name) ot.captain = "";
+            }
+            if (teamName) {
+                var req = null;
+                if (requestId) req = reqs.find(function (r) { return String(r.id) === String(requestId); });
+                if (!req) req = reqs.find(function (r) { return normEmail(r.playerEmail) === pEmail && r.status === "Assigned"; });
+                if (!req && team) req = reqs.find(function (r) { return normEmail(r.playerEmail) === pEmail && r.status === "Accepted" && r.sport === team.sport; });
+                p.team = teamName;
+                p.assignedBy = byEmail || p.assignedBy || "";
+                if (team && team.sport) p.sport = team.sport;
+                if (req) { req.status = "Assigned"; req.assignedTeam = teamName; p.tournamentId = req.tournamentId; p.tournamentName = req.tournamentName; p.sport = req.sport || p.sport; }
+            } else {
+                p.team = ""; p.assignedBy = "";
+                reqs.forEach(function (r) { if (normEmail(r.playerEmail) === pEmail && r.status === "Assigned") { r.status = "Accepted"; r.assignedTeam = ""; } });
+            }
+            p.status = derivePlayerStatus(p, reqs);
+            setData("players", players); setData("teams", teams); setData("joinRequests", reqs);
+            return true;
+        }
+        // Delete a player everywhere (record, requests, stats, captain)
+        function removePlayerEverywhere(pEmail) {
+            pEmail = normEmail(pEmail);
+            var p = findPlayer(pEmail);
+            var teams = getData("teams", []);
+            if (p) teams.forEach(function (t) { if (t.captain === p.name && t.name === p.team) t.captain = ""; });
+            setData("teams", teams);
+            setData("players", getData("players", []).filter(function (x) { return normEmail(x.email) !== pEmail; }));
+            setData("joinRequests", getData("joinRequests", []).filter(function (r) { return normEmail(r.playerEmail) !== pEmail; }));
+            var st = getData("playerStats", {});
+            delete st[pEmail];
+            setData("playerStats", st);
+        }
+
+        // ---------- 6. Team / Tournament cascade (keeps all pages in sync) ----------
+        function renameTeamEverywhere(oldName, newName) {
+            var teams = getData("teams", []);
+            teams.forEach(function (t) { if (t.name === oldName) t.name = newName; });
+            setData("teams", teams);
+            var players = getData("players", []);
+            players.forEach(function (p) { if (p.team === oldName) p.team = newName; });
+            setData("players", players);
+            var matches = getData("matches", []);
+            matches.forEach(function (m) {
+                if (m.team1 === oldName) m.team1 = newName;
+                if (m.team2 === oldName) m.team2 = newName;
+                if (m.winner === oldName) m.winner = newName;
+                if (m.resultNote) m.resultNote = m.resultNote.split(oldName).join(newName);
+            });
+            setData("matches", matches);
+            var reqs = getData("joinRequests", []);
+            reqs.forEach(function (r) { if (r.assignedTeam === oldName) r.assignedTeam = newName; });
+            setData("joinRequests", reqs);
+        }
+        // Delete team: its matches go, its players go back to "Accepted" list
+        function removeTeamEverywhere(teamName) {
+            setData("teams", getData("teams", []).filter(function (t) { return t.name !== teamName; }));
+            setData("matches", getData("matches", []).filter(function (m) { return m.team1 !== teamName && m.team2 !== teamName; }));
+            var reqs = getData("joinRequests", []);
+            reqs.forEach(function (r) { if (r.status === "Assigned" && r.assignedTeam === teamName) { r.status = "Accepted"; r.assignedTeam = ""; } });
+            setData("joinRequests", reqs);
+            var players = getData("players", []);
+            players.forEach(function (p) { if (p.team === teamName) { p.team = ""; p.assignedBy = ""; } p.status = derivePlayerStatus(p, reqs); });
+            setData("players", players);
+        }
+        // Delete tournament: matches + requests go, players lose that tournament
+        function removeTournamentEverywhere(tid) {
+            setData("tournaments", getData("tournaments", []).filter(function (t) { return String(t.id) !== String(tid); }));
+            setData("matches", getData("matches", []).filter(function (m) { return String(m.tournamentId) !== String(tid); }));
+            var reqs = getData("joinRequests", []).filter(function (r) { return String(r.tournamentId) !== String(tid); });
+            setData("joinRequests", reqs);
+            var teams = getData("teams", []);
+            var players = getData("players", []);
+            players.forEach(function (p) {
+                if (String(p.tournamentId) === String(tid)) {
+                    teams.forEach(function (t) { if (t.name === p.team && t.captain === p.name) t.captain = ""; });
+                    p.team = ""; p.sport = ""; p.tournamentId = ""; p.tournamentName = ""; p.assignedBy = "";
+                }
+                p.status = derivePlayerStatus(p, reqs);
+            });
+            setData("players", players); setData("teams", teams);
+        }
+        // Teams that are playing in a tournament (from assigned players + matches)
+        function getTournamentTeams(tid) {
+            var names = [];
+            getData("joinRequests", []).forEach(function (r) {
+                if (String(r.tournamentId) === String(tid) && r.status === "Assigned" && r.assignedTeam && names.indexOf(r.assignedTeam) === -1) names.push(r.assignedTeam);
+            });
+            getData("matches", []).forEach(function (m) {
+                if (String(m.tournamentId) === String(tid)) [m.team1, m.team2].forEach(function (n) { if (n && names.indexOf(n) === -1) names.push(n); });
+            });
+            return names;
+        }
+        // Match result for one team: Won / Lost / Draw / -
+        function getResultForTeam(m, teamName) {
+            if (m.status !== "Completed") return "-";
+            if (!m.winner || String(m.winner).toLowerCase() == "draw") return "Draw";
+            return m.winner === teamName ? "Won" : "Lost";
+        }
+
+        // ---------- 7. Data repair - runs on every page load ----------
+        // Gives ids to old records, fixes email case, removes broken links
+        function migrateData() {
+            var users = getData("users", []), teams = getData("teams", []), tournaments = getData("tournaments", []);
+            var matches = getData("matches", []), grounds = getData("grounds", []), players = getData("players", []);
+            var reqs = getData("joinRequests", []);
+            teams.forEach(function (t) {
+                if (!t.id) t.id = newId();
+                if (!t.organizer) t.organizer = t.organizerEmail || t.createdBy || "";
+                if (t.sport === undefined) t.sport = "";
+                if (t.captain === undefined) t.captain = "";
+                if (t.city === undefined) t.city = "";
+            });
+            tournaments.forEach(function (t) { if (!t.id) t.id = newId(); if (!t.organizer) t.organizer = t.organizerEmail || t.createdBy || ""; t.organizer = normEmail(t.organizer); });
+            grounds.forEach(function (g) { if (!g.id) g.id = newId(); });
+            players.forEach(function (p) { p.email = normEmail(p.email); if (p.team === undefined) p.team = ""; if (p.sport === undefined) p.sport = ""; if (!p.role) p.role = "Player"; });
+            reqs.forEach(function (r) { r.playerEmail = normEmail(r.playerEmail); r.organizer = normEmail(r.organizer); if (r.assignedTeam === undefined) r.assignedTeam = ""; });
+            // requests of deleted tournaments are removed
+            reqs = reqs.filter(function (r) { return tournaments.some(function (t) { return String(t.id) === String(r.tournamentId); }); });
+            // requests assigned to a team that does not exist go back to Accepted
+            reqs.forEach(function (r) { if (r.status === "Assigned" && !teams.some(function (t) { return t.name === r.assignedTeam; })) { r.status = "Accepted"; r.assignedTeam = ""; } });
+            // every assigned request must have a player record with same team
+            reqs.forEach(function (r) {
+                var p = players.find(function (x) { return x.email === r.playerEmail; });
+                if (!p && (r.status === "Assigned" || r.status === "Accepted")) {
+                    p = { name: r.playerName, email: r.playerEmail, age: "", team: "", sport: r.sport, role: "Player", status: "Waiting", tournamentId: "", tournamentName: "", assignedBy: "", createdAt: new Date().toLocaleDateString() };
+                    players.push(p);
+                }
+                if (!p) return;
+                if (r.status === "Assigned") { p.team = r.assignedTeam; p.sport = r.sport; p.tournamentId = r.tournamentId; p.tournamentName = r.tournamentName; }
+                else if ((r.status === "Accepted" || r.status === "Pending") && !p.tournamentName) { p.tournamentId = r.tournamentId; p.tournamentName = r.tournamentName; p.sport = r.sport; }
+            });
+            players.forEach(function (p) {
+                if (p.team && !teams.some(function (t) { return t.name === p.team; })) p.team = "";     // team was deleted
+                p.status = derivePlayerStatus(p, reqs);
+            });
+            matches = matches.filter(function (m) {
+                var okTeams = teams.some(function (t) { return t.name === m.team1; }) && teams.some(function (t) { return t.name === m.team2; });
+                var okTour = !m.tournamentId || tournaments.some(function (t) { return String(t.id) === String(m.tournamentId); });
+                return okTeams && okTour;
+            });
+            matches.forEach(function (m, i) { if (!m.id) m.id = newId() + i; });
+            // Save only if something changed
+            var all = { users: users, teams: teams, tournaments: tournaments, matches: matches, grounds: grounds, players: players, joinRequests: reqs };
+            Object.keys(all).forEach(function (k) {
+                var s = JSON.stringify(all[k]);
+                if (localStorage.getItem(k) !== s) localStorage.setItem(k, s);
+            });
+            getSportTemplates();
+        }
+
+        // ---------- 8. Auto refresh when data changes in another tab ----------
+        window.addEventListener("storage", function () { if (ACCESS_OK && typeof refreshPage === "function") refreshPage(); });
+        window.addEventListener("pageshow", function (e) { if (e.persisted && ACCESS_OK && typeof refreshPage === "function") { migrateData(); refreshPage(); } });
+
+        if (ACCESS_OK) { migrateData(); renderNavbar(); }
+
+
+        // Data arrays - reloaded fresh every time by loadAll()
+        var teams = [], tournaments = [], matches = [], players = [], requests = [];
+        var currentFilter = "All";
+
+        function loadAll() {
+            teams = getData("teams", []);
+            tournaments = getData("tournaments", []);
+            matches = getData("matches", []);
+            players = getData("players", []);
+            requests = getData("joinRequests", []);
+        }
+        // Save helper (kept from old code)
+        function saveAll() {
+            setData("teams", teams); setData("tournaments", tournaments); setData("joinRequests", requests);
+            setData("players", players); setData("matches", matches);
+        }
+        function myTeams() { return teams.filter(function (t) { return normEmail(t.organizer) === email; }); }
+        function findPlayerLocal(pEmail) { return players.find(function (p) { return normEmail(p.email) === normEmail(pEmail); }); }
+
+        // ===== CREATE TEAM - only name =====
+        function createTeam() {
+            if (!requireManager()) return;
+            loadAll();
+            var name = document.getElementById("teamName").value.trim();
+            if (name == "") { alert("Please enter team name."); return; }
+            if (name.length < 2) { alert("Team name must be at least 2 characters."); return; }
+            // Team name must be unique in the whole league
+            if (teams.find(function (t) { return sameText(t.name, name); })) { alert("Team with this name already exists. Please use a different name."); return; }
+            teams.push({ id: newId(), name: name, sport: "", captain: "", city: "", organizer: email, createdAt: new Date().toLocaleDateString() });
+            saveAll();
+            document.getElementById("teamName").value = "";
+            renderAll();
+            alert("Team Created Successfully: " + name);
+        }
+
+        // ===== ASSIGN SPORT TO TEAM =====
+        function assignSport(teamId) {
+            if (!requireManager()) return;
+            loadAll();
+            var sport = document.getElementById("sport-" + teamId).value;
+            if (sport == "") { alert("Please select a sport."); return; }
+            var team = teams.find(function (t) { return String(t.id) === String(teamId); });
+            if (!team) return;
+            if (team.sport && team.sport !== sport) {
+                var hasPlayers = players.some(function (p) { return p.team === team.name; });
+                var hasMatches = matches.some(function (m) { return m.team1 === team.name || m.team2 === team.name; });
+                if (hasPlayers || hasMatches) { alert("Cannot change sport. This team already has players or matches. Remove them first."); return; }
+            }
+            team.sport = sport;
+            saveAll();
+            renderAll();
+            alert(team.name + " assigned to " + sport + " Successfully");
+        }
+
+        // ===== DELETE TEAM =====
+        function deleteTeam(teamId) {
+            if (!requireManager()) return;
+            loadAll();
+            var team = teams.find(function (t) { return String(t.id) === String(teamId); });
+            if (!team) return;
+            if (!confirm("Are you sure you want to delete team '" + team.name + "'?\nIts matches will also be deleted and its players will go back to the Accepted list.")) return;
+            removeTeamEverywhere(team.name);
+            renderAll();
+            alert("Team Deleted Successfully: " + team.name);
+        }
+
+        function filterTeams(sport, btn) {
+            currentFilter = sport;
+            document.querySelectorAll("#team-filter .filter-btn").forEach(function (b) { b.classList.remove("active"); });
+            btn.classList.add("active");
+            showTeams();
+        }
+
+        function showTeams() {
+            loadAll();
+            var box = document.getElementById("teams-list");
+            var list = myTeams();
+            if (currentFilter === "No Sport") list = list.filter(function (t) { return !t.sport; });
+            else if (currentFilter !== "All") list = list.filter(function (t) { return t.sport === currentFilter; });
+            if (list.length === 0) { box.innerHTML = '<p class="empty">No teams found in this filter.</p>'; return; }
+            var html = "";
+            list.forEach(function (t) {
+                var count = players.filter(function (p) { return p.team === t.name; }).length;
+                var opts = '<option value="">Assign Sport</option>' + FIXED_SPORTS.map(function (s) { return '<option value="' + s + '"' + (t.sport === s ? " selected" : "") + '>' + s + '</option>'; }).join("");
+                html += '<div class="row"><div><b>' + esc(t.name) + '</b><br><span>Created: ' + esc(t.createdAt || "-") + ' | Players: ' + count + (t.captain ? ' | Captain: ' + esc(t.captain) : '') + '</span></div>' +
+                    '<span class="' + (t.sport ? "badge-green" : "badge-grey") + '">' + (t.sport ? esc(t.sport) : "No Sport Yet") + '</span>' +
+                    '<div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;"><select class="small-select" id="sport-' + t.id + '">' + opts + '</select>' +
+                    '<button class="btn-green" onclick="assignSport(' + t.id + ')">Save Sport</button>' +
+                    '<button class="btn-red" onclick="deleteTeam(' + t.id + ')">Delete</button></div></div>';
+            });
+            box.innerHTML = html;
+        }
+
+        // ===== CREATE TOURNAMENT =====
+        function createTournament() {
+            if (!requireManager()) return;
+            loadAll();
+            var name = document.getElementById("tournamentName").value.trim();
+            var sport = document.getElementById("tournamentSport").value;
+            if (name == "") { alert("Please enter tournament name."); return; }
+            if (name.length < 3) { alert("Tournament name must be at least 3 characters."); return; }
+            if (sport == "") { alert("Please select a sport."); return; }
+            if (tournaments.find(function (t) { return sameText(t.name, name); })) { alert("A tournament with this name already exists."); return; }
+            tournaments.push({ id: newId(), name: name, sport: sport, organizer: email, createdAt: new Date().toLocaleDateString() });
+            saveAll();
+            document.getElementById("tournamentName").value = "";
+            renderAll();
+            alert("Tournament Created Successfully: " + name + " (" + sport + ")");
+        }
+
+        // ===== DELETE TOURNAMENT - disappears from Admin, Organizer and Player =====
+        function deleteTournament(tournamentId) {
+            if (!requireManager()) return;
+            loadAll();
+            var t = tournaments.find(function (x) { return String(x.id) === String(tournamentId); });
+            if (!t) return;
+            if (!confirm("Are you sure? '" + t.name + "' Tournament will be deleted.\nIts requests and matches will also be deleted from Admin, Organizer and Player dashboards.")) return;
+            removeTournamentEverywhere(tournamentId);
+            renderAll();
+            alert("Tournament Deleted Successfully: " + t.name);
+        }
+
+        function showTournaments() {
+            loadAll();
+            var box = document.getElementById("tournaments-list");
+            var mine = tournaments.filter(function (t) { return normEmail(t.organizer) === email; });
+            if (mine.length === 0) { box.innerHTML = '<p class="empty">No tournaments yet.</p>'; return; }
+            var html = "";
+            mine.forEach(function (t) {
+                var joined = requests.filter(function (r) { return String(r.tournamentId) === String(t.id) && r.status === "Assigned"; }).length;
+                html += '<div class="row"><div><b>' + esc(t.name) + '</b><br><span>Teams: ' + getTournamentTeams(t.id).length + ' | Players joined: ' + joined + '</span></div>' +
+                    '<span class="badge">' + esc(t.sport) + '</span><span>' + esc(t.createdAt) + '</span>' +
+                    '<button class="btn-red" onclick="deleteTournament(' + t.id + ')">Delete</button></div>';
+            });
+            box.innerHTML = html;
+        }
+
+        // ===== PENDING REQUESTS - only for MY tournaments =====
+        function showPendingRequests() {
+            loadAll();
+            var box = document.getElementById("pending-list");
+            var pending = requests.filter(function (r) { return normEmail(r.organizer) === email && r.status === "Pending"; });
+            if (pending.length === 0) { box.innerHTML = '<p class="empty">No pending requests.</p>'; return; }
+            var html = "";
+            pending.forEach(function (r) {
+                html += '<div class="row"><div><b>' + esc(r.playerName) + '</b><br><span>' + esc(r.playerEmail) + '</span></div>' +
+                    '<div><b>' + esc(r.tournamentName) + '</b><br><span>' + esc(r.sport) + '</span></div>' +
+                    '<div style="display:flex; gap:8px;"><button class="btn-green" onclick="acceptRequest(' + r.id + ')">Accept</button><button class="btn-red" onclick="rejectRequest(' + r.id + ')">Reject</button></div></div>';
+            });
+            box.innerHTML = html;
+        }
+
+        function acceptRequest(requestId) {
+            if (!requireManager()) return;
+            loadAll();
+            var req = requests.find(function (r) { return String(r.id) === String(requestId); });
+            if (!req) { alert("Request not found. It may have been deleted."); renderAll(); return; }
+            req.status = "Accepted";
+            saveAll();
+            // make sure the player record exists and knows his tournament
+            ensurePlayerRecord(req.playerName, req.playerEmail);
+            loadAll();
+            var p = findPlayerLocal(req.playerEmail);
+            if (p && !p.team) { p.tournamentId = req.tournamentId; p.tournamentName = req.tournamentName; p.sport = req.sport; }
+            if (p) p.status = derivePlayerStatus(p, requests);
+            saveAll();
+            renderAll();
+            alert(req.playerName + " accepted for " + req.tournamentName);
+        }
+
+        function rejectRequest(requestId) {
+            if (!requireManager()) return;
+            loadAll();
+            var req = requests.find(function (r) { return String(r.id) === String(requestId); });
+            if (!req) return;
+            req.status = "Rejected";
+            var p = findPlayerLocal(req.playerEmail);
+            if (p) p.status = derivePlayerStatus(p, requests);
+            saveAll();
+            renderAll();
+            alert("Request Rejected for " + req.playerName);
+        }
+
+        // ===== ACCEPTED PLAYERS - assign to team =====
+        function showAcceptedPlayers() {
+            loadAll();
+            var box = document.getElementById("accepted-list");
+            var accepted = requests.filter(function (r) { return normEmail(r.organizer) === email && r.status === "Accepted" && !r.assignedTeam; });
+            if (accepted.length === 0) { box.innerHTML = '<p class="empty">No accepted players yet. Accept a request first.</p>'; return; }
+            var html = "";
+            accepted.forEach(function (r) {
+                var same = myTeams().filter(function (t) { return t.sport === r.sport; });
+                var options = "";
+                if (same.length === 0) options = '<option value="">No team for ' + esc(r.sport) + ' - Create team first</option>';
+                else { options = '<option value="">Select Team</option>'; same.forEach(function (t) { options += '<option value="' + t.id + '">' + esc(t.name) + ' (' + esc(t.sport) + ')</option>'; }); }
+                html += '<div class="row"><div><b>' + esc(r.playerName) + '</b><br><span>' + esc(r.playerEmail) + ' | ' + esc(r.tournamentName) + '</span></div>' +
+                    '<div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;"><select class="small-select" id="assign-team-' + r.id + '">' + options + '</select>' +
+                    '<button class="btn-green" onclick="assignToTeam(' + r.id + ')">Assign To Team</button></div></div>';
+            });
+            box.innerHTML = html;
+        }
+
+        function assignToTeam(requestId) {
+            if (!requireManager()) return;
+            loadAll();
+            var teamId = document.getElementById("assign-team-" + requestId).value;
+            if (teamId == "") { alert("Please select a team."); return; }
+            var req = requests.find(function (r) { return String(r.id) === String(requestId); });
+            var team = teams.find(function (t) { return String(t.id) === String(teamId); });
+            if (!req || !team) { alert("Team or request not found."); renderAll(); return; }
+            var p = findPlayerLocal(req.playerEmail);
+            if (p && p.team && p.team !== team.name) { alert(req.playerName + " is already in team '" + p.team + "'. Remove him from that team first."); return; }
+            if (!p) ensurePlayerRecord(req.playerName, req.playerEmail);
+            assignPlayerToTeam(req.playerEmail, team.name, email, requestId);
+            renderAll();
+            alert(req.playerName + " assigned to " + team.name + " Successfully");
+        }
+
+        // ===== PLAYERS ASSIGNED TO TEAMS - with Edit + Delete =====
+        function showAssignedPlayers() {
+            loadAll();
+            var box = document.getElementById("assigned-list");
+            var assigned = requests.filter(function (r) { return normEmail(r.organizer) === email && r.status === "Assigned"; });
+            if (assigned.length === 0) { box.innerHTML = '<p class="empty">No players assigned to any team yet.</p>'; return; }
+            var html = "";
+            assigned.forEach(function (r) {
+                var same = myTeams().filter(function (t) { return t.sport === r.sport; });
+                var options = same.map(function (t) { return '<option value="' + t.id + '"' + (t.name === r.assignedTeam ? " selected" : "") + '>' + esc(t.name) + ' (' + esc(t.sport) + ')</option>'; }).join("");
+                if (!options) options = '<option value="">No Team for ' + esc(r.sport) + '</option>';
+                html += '<div class="row" id="assigned-row-' + r.id + '"><div><b>' + esc(r.playerName) + '</b><br><span>' + esc(r.playerEmail) + '</span></div>' +
+                    '<div><b>' + esc(r.tournamentName) + '</b><br><span>' + esc(r.sport) + '</span></div>' +
+                    '<span class="badge-green">Team: ' + esc(r.assignedTeam) + '</span>' +
+                    '<div style="display:flex; gap:8px;"><button class="btn-blue" onclick="editAssigned(' + r.id + ')">Edit</button><button class="btn-red" onclick="deleteAssigned(' + r.id + ')">Delete</button></div>' +
+                    '<div class="edit-box" id="edit-box-' + r.id + '"><div style="font-size:13px; font-weight:bold; margin-bottom:8px;">Change Team for ' + esc(r.playerName) + ':</div>' +
+                    '<div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;"><select class="small-select" id="edit-team-' + r.id + '">' + options + '</select>' +
+                    '<button class="btn-green" onclick="saveAssignedEdit(' + r.id + ')">Save Team</button>' +
+                    '<button class="btn-orange" onclick="moveToRequest(' + r.id + ')">&#8617; Back to Request</button>' +
+                    '<button class="btn-grey" onclick="cancelAssignedEdit(' + r.id + ')">Cancel</button></div>' +
+                    '<p style="font-size:12px; margin:8px 0 0;">Save Team = move to another team &nbsp;|&nbsp; Back to Request = player goes back to Accepted list</p></div></div>';
+            });
+            box.innerHTML = html;
+        }
+
+        function editAssigned(requestId) {
+            var box = document.getElementById("edit-box-" + requestId);
+            box.style.display = box.style.display === "block" ? "none" : "block";
+        }
+        function cancelAssignedEdit(requestId) { document.getElementById("edit-box-" + requestId).style.display = "none"; }
+
+        // Save the new team of an assigned player
+        function saveAssignedEdit(requestId) {
+            if (!requireManager()) return;
+            loadAll();
+            var teamId = document.getElementById("edit-team-" + requestId).value;
+            if (!teamId) { alert("Please select a team."); return; }
+            var req = requests.find(function (r) { return String(r.id) === String(requestId); });
+            var team = teams.find(function (t) { return String(t.id) === String(teamId); });
+            if (!req || !team) return;
+            var oldTeam = req.assignedTeam;
+            if (oldTeam === team.name) { alert("Player is already in this team."); return; }
+            assignPlayerToTeam(req.playerEmail, team.name, email, requestId);
+            renderAll();
+            alert(req.playerName + " moved from " + oldTeam + " to " + team.name + " Successfully");
+        }
+
+        // Player goes back to the Accepted list
+        function moveToRequest(requestId) {
+            if (!requireManager()) return;
+            loadAll();
+            var req = requests.find(function (r) { return String(r.id) === String(requestId); });
+            if (!req) return;
+            if (!confirm("Move " + req.playerName + " back to the Accepted list? He will be removed from the team.")) return;
+            assignPlayerToTeam(req.playerEmail, "", email, requestId);
+            renderAll();
+            alert(req.playerName + " moved back to Accepted list.");
+        }
+
+        // Delete assigned player (removes from team and deletes his request)
+        function deleteAssigned(requestId) {
+            if (!requireManager()) return;
+            loadAll();
+            var req = requests.find(function (r) { return String(r.id) === String(requestId); });
+            if (!req) return;
+            if (!confirm("Are you sure? Remove " + req.playerName + " from team '" + req.assignedTeam + "'?")) return;
+            assignPlayerToTeam(req.playerEmail, "", email, requestId);
+            loadAll();
+            requests = requests.filter(function (r) { return String(r.id) !== String(requestId); });
+            var p = findPlayerLocal(req.playerEmail);
+            if (p && String(p.tournamentId) === String(req.tournamentId)) { p.tournamentId = ""; p.tournamentName = ""; p.sport = ""; }
+            if (p) p.status = derivePlayerStatus(p, requests);
+            saveAll();
+            renderAll();
+            alert(req.playerName + " deleted from team.");
+        }
+
+        // ===== STATS + MATCHES =====
+        function updateStats() {
+            loadAll();
+            document.getElementById("total-teams").innerText = myTeams().length;
+            document.getElementById("total-tournaments").innerText = tournaments.filter(function (t) { return normEmail(t.organizer) === email; }).length;
+            document.getElementById("total-requests").innerText = requests.filter(function (r) { return normEmail(r.organizer) === email && r.status === "Pending"; }).length;
+            document.getElementById("total-assigned").innerText = requests.filter(function (r) { return normEmail(r.organizer) === email && r.status === "Assigned"; }).length;
+        }
+
+        // Next 5 matches that are not completed (my matches or matches of my teams)
+        function showMatches() {
+            loadAll();
+            var matchList = document.getElementById("match-list");
+            var myNames = myTeams().map(function (t) { return t.name; });
+            var list = matches.filter(function (m) {
+                var mine = normEmail(m.organizer) === email || myNames.indexOf(m.team1) !== -1 || myNames.indexOf(m.team2) !== -1;
+                return mine && m.status !== "Completed";
+            }).sort(function (a, b) { return String(a.date).localeCompare(String(b.date)); }).slice(0, 5);
+            if (list.length === 0) { matchList.innerHTML = '<p class="empty">No upcoming matches. <a href="matches.html">Create a match</a>.</p>'; return; }
+            var html = "";
+            list.forEach(function (m) {
+                html += '<div class="row"><b>' + esc(m.team1) + ' vs ' + esc(m.team2) + '</b><span>' + esc(m.date) + ' - ' + esc(m.ground) + (m.tournamentName ? ' | ' + esc(m.tournamentName) : '') + '</span><span class="badge">' + esc(m.status) + '</span></div>';
+            });
+            matchList.innerHTML = html;
+        }
+
+        function renderAll() {
+            document.getElementById("welcome-text").innerHTML = "Welcome, " + esc(userName) + " <span style='font-size:14px; color:#777; font-weight:normal;'>(" + esc(email) + ")</span>";
+            showTeams(); showTournaments(); showPendingRequests(); showAcceptedPlayers(); showAssignedPlayers(); showMatches(); updateStats();
+        }
+        function refreshPage() { renderAll(); }
+
+        // Load everything on page open
+        if (ACCESS_OK) { renderAll(); }
+    </script>
+</body>
+</html>

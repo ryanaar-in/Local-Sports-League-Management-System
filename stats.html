@@ -1,0 +1,696 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sports League - Stats</title>
+    <style>
+        /* =====================================================================
+           COMMON STYLE - Same on every page (Navbar, Footer, Buttons, Forms,
+           Tables, Cards, Modal). Theme: Navy #1a1a2e + Yellow #ffcc00
+           ===================================================================== */
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: Arial, Helvetica, sans-serif; }
+        body { background-color: #f2f2f2; color: #333; display: flex; flex-direction: column; min-height: 100vh; }
+        button { font-family: inherit; }
+
+        /* ---------- Navbar ---------- */
+        .navbar { background-color: #1a1a2e; color: white; padding: 12px 30px; display: flex; justify-content: space-between; align-items: center; gap: 15px; position: sticky; top: 0; z-index: 900; box-shadow: 0 2px 8px rgba(0,0,0,0.25); }
+        .logo { display: flex; align-items: center; gap: 10px; font-size: 21px; font-weight: bold; color: white; text-decoration: none; white-space: nowrap; }
+        .logo-icon { background-color: #ffcc00; color: #1a1a2e; width: 38px; height: 38px; display: flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 16px; font-weight: bold; }
+        .nav-links { display: flex; align-items: center; gap: 4px; flex-wrap: nowrap; }
+        .nav-links a { color: white; text-decoration: none; font-size: 14px; padding: 8px 10px; border-radius: 6px; white-space: nowrap; transition: 0.2s; }
+        .nav-links a:hover { color: #ffcc00; background: rgba(255,255,255,0.07); }
+        .nav-links a.active { color: #1a1a2e; background: #ffcc00; font-weight: bold; }
+        .nav-user { display: flex; flex-direction: column; line-height: 1.25; margin: 0 8px 0 12px; padding-left: 12px; border-left: 1px solid rgba(255,255,255,0.25); max-width: 190px; }
+        .nav-user b { font-size: 13px; color: #ffcc00; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .nav-user small { font-size: 11px; color: #cfcfdd; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .btn-logout { background-color: #ff4444; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: bold; transition: 0.2s; }
+        .btn-logout:hover { background-color: #d93636; }
+        .nav-toggle { display: none; background: #ffcc00; color: #1a1a2e; border: none; width: 40px; height: 38px; border-radius: 6px; font-size: 20px; font-weight: bold; cursor: pointer; }
+
+        /* ---------- Layout ---------- */
+        .container { padding: 30px; max-width: 1150px; margin: 0 auto; width: 100%; flex: 1; }
+        .container h2 { color: #1a1a2e; font-size: 26px; margin-bottom: 5px; }
+        .container > p { color: #777777; margin-bottom: 25px; }
+        .section-title { font-size: 20px; color: #1a1a2e; margin: 30px 0 15px 0; font-weight: bold; border-left: 4px solid #ffcc00; padding-left: 10px; }
+        .footer { background-color: #1a1a2e; color: white; text-align: center; padding: 18px; margin-top: auto; font-size: 14px; letter-spacing: 0.5px; }
+
+        /* ---------- Forms ---------- */
+        .form-box { background-color: white; padding: 25px; border-radius: 10px; box-shadow: 0 2px 10px rgba(26,26,46,0.08); margin-bottom: 30px; }
+        .form-box h3 { color: #1a1a2e; margin-bottom: 15px; }
+        .form-row { display: flex; gap: 15px; flex-wrap: wrap; }
+        .form-group { flex: 1; min-width: 180px; }
+        .form-group label { display: block; font-weight: bold; font-size: 14px; color: #1a1a2e; margin-bottom: 5px; }
+        .form-group input, .form-group select, .search-box, .filter-select { width: 100%; padding: 12px; border: 1px solid #cccccc; border-radius: 6px; font-size: 15px; outline: none; background: white; transition: 0.2s; }
+        .form-group input:focus, .form-group select:focus, .search-box:focus, .filter-select:focus { border-color: #ffcc00; box-shadow: 0 0 0 3px rgba(255,204,0,0.25); }
+        .search-row { display: flex; gap: 15px; margin-bottom: 18px; flex-wrap: wrap; }
+        .search-box { flex: 2; min-width: 200px; width: auto; }
+        .filter-select { flex: 1; min-width: 160px; width: auto; }
+        .filter-row { display: flex; gap: 15px; flex-wrap: wrap; margin-bottom: 15px; }
+
+        /* ---------- Buttons ---------- */
+        .btn-add { background-color: #ffcc00; color: #1a1a2e; border: none; padding: 13px 30px; border-radius: 6px; font-size: 15px; font-weight: bold; cursor: pointer; margin-top: 15px; margin-right: 8px; transition: 0.2s; }
+        .btn-add:hover { background-color: #e6b800; transform: translateY(-1px); box-shadow: 0 3px 8px rgba(0,0,0,0.15); }
+        .btn-edit, .btn-delete, .btn-stats, .btn-view, .btn-small, .btn-green, .btn-red, .btn-blue, .btn-grey, .btn-orange { border: none; padding: 7px 13px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: bold; color: white; margin: 2px 3px 2px 0; transition: 0.2s; }
+        .btn-edit, .btn-blue, .btn-view { background-color: #0984e3; }
+        .btn-delete, .btn-red { background-color: #ff4444; }
+        .btn-stats, .btn-green { background-color: #00b894; }
+        .btn-orange { background-color: #e17055; }
+        .btn-grey { background-color: #ddd; color: #333; }
+        .btn-edit:hover, .btn-delete:hover, .btn-stats:hover, .btn-view:hover, .btn-small:hover, .btn-green:hover, .btn-red:hover, .btn-blue:hover, .btn-grey:hover, .btn-orange:hover { opacity: 0.88; transform: translateY(-1px); }
+        button:disabled { background: #ccc !important; color: #888 !important; cursor: not-allowed !important; transform: none !important; }
+
+        /* ---------- Tables ---------- */
+        .table-box { background-color: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 10px rgba(26,26,46,0.08); overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; min-width: 560px; }
+        th { background-color: #1a1a2e; color: white; padding: 12px; text-align: left; font-size: 14px; white-space: nowrap; }
+        td { padding: 12px; border-bottom: 1px solid #eeeeee; font-size: 14px; vertical-align: middle; }
+        tbody tr:hover { background: #fffbe8; }
+        .empty-msg { text-align: center; color: #999999; padding: 20px; }
+
+        /* ---------- Badges ---------- */
+        .badge { background-color: #ffcc00; color: #1a1a2e; padding: 4px 11px; border-radius: 20px; font-size: 12px; font-weight: bold; display: inline-block; }
+        .badge-green { background-color: #d4f8e8; color: #00875a; padding: 4px 11px; border-radius: 20px; font-size: 12px; font-weight: bold; display: inline-block; }
+        .badge-grey { background-color: #eee; color: #777; padding: 4px 11px; border-radius: 20px; font-size: 12px; font-weight: bold; display: inline-block; }
+        .badge-red { background-color: #ffe0e0; color: #ff4444; padding: 4px 11px; border-radius: 20px; font-size: 12px; font-weight: bold; display: inline-block; }
+        .avatar { width: 32px; height: 32px; background-color: #1a1a2e; color: #ffcc00; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 14px; font-weight: bold; flex-shrink: 0; }
+        .role-badge { padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: bold; display: inline-block; }
+        .role-batsman { background-color: #ffeaa7; color: #2d3436; }
+        .role-bowler { background-color: #dfe6e9; color: #2d3436; }
+        .role-allrounder { background-color: #55efc4; color: #2d3436; }
+        .role-keeper { background-color: #fab1a0; color: #2d3436; }
+        .role-general { background-color: #dfe6e9; color: #2d3436; }
+        .status-badge { padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: bold; display: inline-block; }
+        .status-waiting { background-color: #fff8d6; color: #856404; border: 1px solid #ffcc00; }
+        .status-approved, .status-assigned { background-color: #e6f9f1; color: #00875a; border: 1px solid #00b894; }
+        .status-pending, .status-accepted { background-color: #ffeaa7; color: #2d3436; border: 1px solid #fdcb6e; }
+
+        /* ---------- Modal (popup) ---------- */
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.6); z-index: 1000; justify-content: center; align-items: center; padding: 15px; }
+        .modal-overlay.active, .modal-overlay.show { display: flex; }
+        .modal-box { background-color: white; width: 100%; max-width: 520px; max-height: 90vh; overflow-y: auto; border-radius: 12px; padding: 25px; }
+        .modal-box h3 { color: #1a1a2e; margin-bottom: 5px; }
+        .modal-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 5px; gap: 10px; }
+        .modal-header h3 { font-size: 20px; }
+        .modal-header p { color: #777; font-size: 13px; margin-top: 4px; }
+        .btn-close { background-color: #eee; border: none; width: 32px; height: 32px; border-radius: 50%; cursor: pointer; font-size: 16px; font-weight: bold; flex-shrink: 0; }
+        .modal-actions { display: flex; gap: 10px; margin-top: 20px; }
+        .hint { font-size: 12px; color: #999; margin-top: 4px; }
+
+        /* ---------- Small helpers ---------- */
+        .note { background: #fff8d6; border: 1px solid #ffe08a; color: #664d03; padding: 12px; border-radius: 8px; font-size: 13px; margin-bottom: 20px; }
+        .muted { color: #777; font-size: 13px; }
+
+        /* ---------- Responsive ---------- */
+        @media (max-width: 1100px) {
+            .navbar { flex-wrap: wrap; padding: 10px 18px; }
+            .nav-toggle { display: block; }
+            .nav-links { display: none; width: 100%; flex-direction: column; align-items: stretch; gap: 4px; padding-top: 10px; }
+            .nav-links.open { display: flex; }
+            .nav-links a { padding: 11px 12px; }
+            .nav-user { border-left: none; margin: 6px 0; padding: 8px 12px; max-width: 100%; background: rgba(255,255,255,0.06); border-radius: 6px; }
+            .btn-logout { width: 100%; padding: 11px; }
+        }
+        @media (max-width: 700px) {
+            .container { padding: 18px 14px; }
+            .container h2 { font-size: 22px; }
+            .form-group { min-width: 100%; }
+            .form-box { padding: 18px; }
+            .btn-add { width: 100%; margin-right: 0; }
+            .search-box, .filter-select { min-width: 100%; }
+            .modal-actions { flex-direction: column; }
+        }
+
+        /* ===== Stats page only style ===== */
+        .stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 30px; }
+        .stat-card { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 10px rgba(26,26,46,0.08); text-align: center; transition: 0.2s; border-top: 4px solid #ffcc00; }
+        .stat-card:hover { transform: translateY(-3px); }
+        .stat-card h3 { color: #777; font-size: 14px; margin-bottom: 8px; }
+        .stat-card .big { color: #1a1a2e; font-size: 32px; font-weight: bold; }
+        .box { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 10px rgba(26,26,46,0.08); margin-bottom: 30px; overflow-x: auto; }
+        .box h3 { color: #1a1a2e; margin-bottom: 15px; border-left: 4px solid #ffcc00; padding-left: 10px; }
+        .rank-1 { background-color: #ffcc00; color: #1a1a2e; font-weight: bold; padding: 4px 10px; border-radius: 20px; font-size: 12px; white-space: nowrap; }
+        .team-name { display: flex; align-items: center; gap: 10px; font-weight: bold; color: #1a1a2e; }
+        .color-dot { width: 18px; height: 18px; border-radius: 50%; display: inline-block; border: 1px solid #ddd; flex-shrink: 0; }
+        .top-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 15px; }
+        .top-card { background: #f8f9fa; border: 1px solid #eee; border-radius: 10px; padding: 15px; }
+        .top-card h4 { color: #777; font-size: 13px; margin-bottom: 5px; }
+        .top-card p { color: #1a1a2e; font-size: 18px; font-weight: bold; margin: 0 !important; }
+        .top-card span { color: #777; font-size: 13px; font-weight: normal; }
+        .btn-clear { background-color: #ff4444; color: white; border: none; padding: 10px 18px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: bold; margin-bottom: 20px; transition: 0.2s; }
+        .btn-clear:hover { background: #d93636; }
+        .result-row { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; padding: 11px 0; border-bottom: 1px solid #eee; }
+        .result-row:last-child { border-bottom: none; }
+        @media (max-width: 800px) { .stats-row { grid-template-columns: repeat(2, 1fr); } }
+        @media (max-width: 420px) { .stats-row { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+    <div id="navbar"></div>
+
+    <div class="container">
+        <h2>League Stats</h2>
+        <p>Points Table, Top Teams and Match Stats - Everything in one place.</p>
+
+        <!-- Clear Old Data Button (Admin / Organizer only) -->
+        <button class="btn-clear" id="btn-clear" onclick="clearOldData()">&#128465;&#65039; Clear All Old Data (Purani Teams / Matches Delete Karo)</button>
+
+        <div class="stats-row">
+            <div class="stat-card"><h3>Total Matches</h3><div class="big" id="total-matches">0</div></div>
+            <div class="stat-card" style="border-top-color:#e6b800;"><h3>Upcoming</h3><div class="big" style="color:#e6b800;" id="upcoming-count">0</div></div>
+            <div class="stat-card" style="border-top-color:#ff4444;"><h3>Live</h3><div class="big" style="color:#ff4444;" id="live-count">0</div></div>
+            <div class="stat-card" style="border-top-color:#00b894;"><h3>Completed</h3><div class="big" style="color:#00b894;" id="completed-count">0</div></div>
+        </div>
+
+        <div class="box">
+            <h3>&#127942; Top Teams</h3>
+            <div class="top-list">
+                <div class="top-card"><h4>Most Wins</h4><p id="top-wins">- <span></span></p></div>
+                <div class="top-card"><h4>Most Players</h4><p id="top-players">- <span></span></p></div>
+                <div class="top-card"><h4>Most Points</h4><p id="top-points">- <span></span></p></div>
+            </div>
+        </div>
+
+        <div class="box">
+            <h3>Points Table</h3>
+            <div class="filter-row">
+                <select id="filter-tournament" class="filter-select" onchange="onTournamentChange()"><option value="All">All Tournaments</option></select>
+                <select id="filter-sport" class="filter-select" onchange="displayStats()">
+                    <option value="Cricket">Cricket</option><option value="Football">Football</option><option value="Kabaddi">Kabaddi</option><option value="Volleyball">Volleyball</option><option value="Basketball">Basketball</option><option value="Badminton">Badminton</option><option value="Other">Other</option>
+                </select>
+            </div>
+            <p id="filter-info" class="muted" style="margin-bottom:12px;"></p>
+            <table>
+                <thead><tr><th>Rank</th><th>Team</th><th>Sport</th><th>Tournament</th><th>Played</th><th>Won</th><th>Lost</th><th>Draw</th><th>Points</th><th>Action</th></tr></thead>
+                <tbody id="points-table"></tbody>
+            </table>
+            <p class="empty-msg" id="empty-msg">No teams yet.</p>
+        </div>
+
+        <div class="box">
+            <h3>Tournament Stats</h3>
+            <table>
+                <thead><tr><th>Tournament</th><th>Sport</th><th>Teams</th><th>Players</th><th>Matches</th><th>Completed</th><th>Leader</th></tr></thead>
+                <tbody id="tournament-table"></tbody>
+            </table>
+        </div>
+
+        <div class="box">
+            <h3>Latest Match Results</h3>
+            <div id="results-list"><p class="empty-msg">No results yet.</p></div>
+        </div>
+    </div>
+
+    <div class="footer"><p>&copy; 2026 Sports League | Made for College Project</p></div>
+
+    <script>
+        var PAGE_ROLES = ["admin", "organizer", "player"];
+        var PAGE_NAME = "stats";
+        // =====================================================================
+        //  COMMON CODE - same code is used on every page, so every page reads
+        //  and writes the SAME localStorage keys (single source of truth):
+        //  users, teams, tournaments, matches, grounds, players,
+        //  joinRequests, playerStats, sportTemplates
+        // =====================================================================
+
+        // ---------- 1. Small helper functions ----------
+        // Read a key from localStorage (returns fallback if empty / broken)
+        function getData(key, fallback) {
+            try {
+                var v = JSON.parse(localStorage.getItem(key));
+                return (v === null || v === undefined) ? fallback : v;
+            } catch (e) { return fallback; }
+        }
+        // Save a value in localStorage
+        function setData(key, value) { localStorage.setItem(key, JSON.stringify(value)); }
+        // Make text safe before putting it inside innerHTML
+        function esc(text) {
+            return String(text === undefined || text === null ? "" : text)
+                .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+        }
+        function normEmail(e) { return String(e || "").trim().toLowerCase(); }
+        // Email format check: something@something.xx (no spaces, no quotes)
+        function isValidEmail(e) { return /^[A-Za-z0-9._%+\-]+@[A-Za-z0-9.\-]+\.[A-Za-z]{2,}$/.test(e); }
+        function newId() { return Date.now() * 1000 + Math.floor(Math.random() * 1000); }
+        function sameText(a, b) { return String(a || "").trim().toLowerCase() === String(b || "").trim().toLowerCase(); }
+        // Fill a <select> with options but keep the old selection if it still exists
+        function fillSelect(selectId, firstLabel, items) {
+            var s = document.getElementById(selectId);
+            if (!s) return;
+            var cur = s.value;
+            var html = '<option value="">' + esc(firstLabel) + '</option>';
+            items.forEach(function (i) { html += '<option value="' + esc(i.value) + '">' + esc(i.label) + '</option>'; });
+            s.innerHTML = html;
+            if (cur && items.some(function (i) { return String(i.value) === String(cur); })) s.value = cur;
+        }
+
+        // ---------- 2. Sports settings (used by many pages) ----------
+        var FIXED_SPORTS = ["Cricket", "Football", "Kabaddi", "Volleyball", "Basketball", "Badminton"];
+        var DEFAULT_TEMPLATES = { "Cricket": ["Matches", "Runs", "Wickets", "Best Score"], "Football": ["Matches", "Goals", "Assists"], "Kabaddi": ["Matches", "Raid Points", "Tackle Points"], "Volleyball": ["Matches", "Points", "Blocks"], "Basketball": ["Matches", "Points", "Rebounds"], "Badminton": ["Matches", "Wins", "Losses"], "Other": ["Matches", "Points"] };
+        var ROLES_BY_SPORT = { "Cricket": ["Batsman", "Bowler", "All-Rounder", "Wicket Keeper"], "Football": ["Striker", "Midfielder", "Defender", "Goalkeeper"], "Kabaddi": ["Raider", "Defender", "All-Rounder"], "Volleyball": ["Spiker", "Setter", "Libero", "Blocker"], "Basketball": ["Point Guard", "Shooting Guard", "Center", "Forward"], "Badminton": ["Singles Player", "Doubles Player"], "Other": ["Player", "Captain", "All-Rounder"] };
+        function isCustomSport(s) { return !!s && FIXED_SPORTS.indexOf(s) === -1; }
+        // Does a sport match the filter value? ("Other" means any custom sport)
+        function sportMatches(sport, filter) {
+            if (filter === "All") return true;
+            if (filter === "Other") return isCustomSport(sport);
+            return sport === filter;
+        }
+        function getSportTemplates() {
+            var t = getData("sportTemplates", null);
+            if (!t) { t = JSON.parse(JSON.stringify(DEFAULT_TEMPLATES)); setData("sportTemplates", t); }
+            return t;
+        }
+        function getTemplateForSport(sport) {
+            var t = getSportTemplates();
+            if (t[sport] && t[sport].length) return t[sport];
+            return t["Other"] || DEFAULT_TEMPLATES["Other"];
+        }
+        function getRolesForSport(sport) { return ROLES_BY_SPORT[sport] || ROLES_BY_SPORT["Other"]; }
+
+        // ---------- 3. Login session + Role based security ----------
+        var SESSION_KEYS = ["userEmail", "userName", "userRole", "currentUser"];
+        function clearSession() { SESSION_KEYS.forEach(function (k) { localStorage.removeItem(k); }); }
+        function dashboardFor(r) {
+            if (r == "admin") return "dashboard-admin.html";
+            if (r == "organizer") return "dashboard-organizer.html";
+            return "dashboard-player.html";
+        }
+        // Returns the logged in user from "users" list. If someone changes the
+        // session by hand (email/role do not match "users") -> returns null.
+        function getSessionUser() {
+            var em = normEmail(localStorage.getItem("userEmail"));
+            var r = localStorage.getItem("userRole");
+            if (!em || !r) return null;
+            var u = getData("users", []).find(function (x) { return normEmail(x.email) === em; });
+            if (!u || u.role !== r) return null;
+            return u;
+        }
+        // Page guard: only allowed roles can stay on the page, others go to login.html
+        function requireLogin(allowedRoles) {
+            if (!allowedRoles) return true;                       // public page
+            var u = getSessionUser();
+            if (u && allowedRoles.indexOf(u.role) !== -1) return true;
+            document.documentElement.style.display = "none";      // hide the page
+            clearSession();
+            alert(u ? "Access Denied" : "Access Denied - Please login first");
+            window.location.href = "login.html";
+            return false;
+        }
+        function logout() { clearSession(); window.location.href = "login.html"; }
+        function goDashboard() { window.location.href = dashboardFor(role); }
+
+        var ACCESS_OK = requireLogin(typeof PAGE_ROLES !== "undefined" ? PAGE_ROLES : null);
+        var currentUser = ACCESS_OK ? getSessionUser() : null;
+        var email = currentUser ? normEmail(currentUser.email) : "";     // logged in email
+        var role = currentUser ? currentUser.role : "";                  // admin / organizer / player
+        var userName = currentUser ? currentUser.name : "";
+        var IS_MANAGER = (role == "admin" || role == "organizer");       // can add / edit / delete
+        // Extra safety inside every Add / Edit / Delete function
+        function requireManager() {
+            if (!IS_MANAGER) { alert("Access Denied - You only have view permission."); return false; }
+            return true;
+        }
+        function getUserName(em) {
+            var u = getData("users", []).find(function (x) { return normEmail(x.email) === normEmail(em); });
+            return u ? u.name : (em || "-");
+        }
+
+        // ---------- 4. Navbar (same on every page, built by one function) ----------
+        function renderNavbar() {
+            var box = document.getElementById("navbar");
+            if (!box) return;
+            var u = getSessionUser();
+            var page = typeof PAGE_NAME !== "undefined" ? PAGE_NAME : "";
+            function link(key, href, text) { return '<a href="' + href + '" class="' + (page == key ? "active" : "") + '">' + text + '</a>'; }
+            var links = "";
+            if (u && typeof PAGE_ROLES !== "undefined" && PAGE_ROLES) {
+                links = link("home", "index.html", "Home") + link("dashboard", dashboardFor(u.role), "Dashboard") + link("teams", "teams.html", "Teams") + link("players", "players.html", "Players") + link("matches", "matches.html", "Matches") + link("grounds", "grounds.html", "Grounds") + link("stats", "stats.html", "Stats") + link("playerstats", "player-stats.html", "Player Stats");
+            } else if (u) {
+                links = link("home", "index.html", "Home") + link("dashboard", dashboardFor(u.role), "Dashboard");
+            } else {
+                links = link("home", "index.html", "Home") + link("login", "login.html", "Login") + link("register", "register.html", "Register");
+            }
+            var userHtml = u ? '<div class="nav-user"><b>' + esc(u.name) + ' (' + esc(u.role) + ')</b><small>' + esc(u.email) + '</small></div><button class="btn-logout" onclick="logout()">Logout</button>' : "";
+            box.className = "navbar";
+            box.innerHTML = '<a class="logo" href="index.html"><div class="logo-icon">SL</div><span>Sports League</span></a>' +
+                '<button class="nav-toggle" onclick="toggleNav()" aria-label="Menu">&#9776;</button>' +
+                '<div class="nav-links" id="nav-links">' + links + userHtml + '</div>';
+        }
+        function toggleNav() { document.getElementById("nav-links").classList.toggle("open"); }
+
+        // ---------- 5. Player helper functions ----------
+        function findPlayer(pEmail) {
+            pEmail = normEmail(pEmail);
+            return getData("players", []).find(function (p) { return normEmail(p.email) === pEmail; });
+        }
+        // Make sure a player record exists (created at register / first login)
+        function ensurePlayerRecord(pName, pEmail) {
+            pEmail = normEmail(pEmail);
+            var players = getData("players", []);
+            var p = players.find(function (x) { return normEmail(x.email) === pEmail; });
+            if (!p) {
+                p = { name: pName, email: pEmail, age: "", team: "", sport: "", role: "Player", status: "Waiting", tournamentId: "", tournamentName: "", assignedBy: "", createdAt: new Date().toLocaleDateString() };
+                players.push(p);
+                setData("players", players);
+            }
+            return p;
+        }
+        // Status rule: has team = Approved, else look at requests
+        function derivePlayerStatus(p, reqs) {
+            if (p.team) return "Approved";
+            var mine = reqs.filter(function (r) { return normEmail(r.playerEmail) === normEmail(p.email); });
+            if (mine.some(function (r) { return r.status === "Accepted"; })) return "Accepted";
+            if (mine.some(function (r) { return r.status === "Pending"; })) return "Pending";
+            return "Waiting";
+        }
+        function getTeamPlayers(teamName) { return getData("players", []).filter(function (p) { return p.team === teamName; }); }
+        // THE ONE function that puts a player in a team / moves / removes him.
+        // It updates players + joinRequests + team captain together.
+        function assignPlayerToTeam(pEmail, teamName, byEmail, requestId) {
+            pEmail = normEmail(pEmail);
+            var players = getData("players", []), teams = getData("teams", []), reqs = getData("joinRequests", []);
+            var p = players.find(function (x) { return normEmail(x.email) === pEmail; });
+            if (!p) return false;
+            var team = teams.find(function (t) { return t.name === teamName; });
+            var oldTeam = p.team || "";
+            if (oldTeam && oldTeam !== teamName) {            // old team loses this captain
+                var ot = teams.find(function (t) { return t.name === oldTeam; });
+                if (ot && ot.captain === p.name) ot.captain = "";
+            }
+            if (teamName) {
+                var req = null;
+                if (requestId) req = reqs.find(function (r) { return String(r.id) === String(requestId); });
+                if (!req) req = reqs.find(function (r) { return normEmail(r.playerEmail) === pEmail && r.status === "Assigned"; });
+                if (!req && team) req = reqs.find(function (r) { return normEmail(r.playerEmail) === pEmail && r.status === "Accepted" && r.sport === team.sport; });
+                p.team = teamName;
+                p.assignedBy = byEmail || p.assignedBy || "";
+                if (team && team.sport) p.sport = team.sport;
+                if (req) { req.status = "Assigned"; req.assignedTeam = teamName; p.tournamentId = req.tournamentId; p.tournamentName = req.tournamentName; p.sport = req.sport || p.sport; }
+            } else {
+                p.team = ""; p.assignedBy = "";
+                reqs.forEach(function (r) { if (normEmail(r.playerEmail) === pEmail && r.status === "Assigned") { r.status = "Accepted"; r.assignedTeam = ""; } });
+            }
+            p.status = derivePlayerStatus(p, reqs);
+            setData("players", players); setData("teams", teams); setData("joinRequests", reqs);
+            return true;
+        }
+        // Delete a player everywhere (record, requests, stats, captain)
+        function removePlayerEverywhere(pEmail) {
+            pEmail = normEmail(pEmail);
+            var p = findPlayer(pEmail);
+            var teams = getData("teams", []);
+            if (p) teams.forEach(function (t) { if (t.captain === p.name && t.name === p.team) t.captain = ""; });
+            setData("teams", teams);
+            setData("players", getData("players", []).filter(function (x) { return normEmail(x.email) !== pEmail; }));
+            setData("joinRequests", getData("joinRequests", []).filter(function (r) { return normEmail(r.playerEmail) !== pEmail; }));
+            var st = getData("playerStats", {});
+            delete st[pEmail];
+            setData("playerStats", st);
+        }
+
+        // ---------- 6. Team / Tournament cascade (keeps all pages in sync) ----------
+        function renameTeamEverywhere(oldName, newName) {
+            var teams = getData("teams", []);
+            teams.forEach(function (t) { if (t.name === oldName) t.name = newName; });
+            setData("teams", teams);
+            var players = getData("players", []);
+            players.forEach(function (p) { if (p.team === oldName) p.team = newName; });
+            setData("players", players);
+            var matches = getData("matches", []);
+            matches.forEach(function (m) {
+                if (m.team1 === oldName) m.team1 = newName;
+                if (m.team2 === oldName) m.team2 = newName;
+                if (m.winner === oldName) m.winner = newName;
+                if (m.resultNote) m.resultNote = m.resultNote.split(oldName).join(newName);
+            });
+            setData("matches", matches);
+            var reqs = getData("joinRequests", []);
+            reqs.forEach(function (r) { if (r.assignedTeam === oldName) r.assignedTeam = newName; });
+            setData("joinRequests", reqs);
+        }
+        // Delete team: its matches go, its players go back to "Accepted" list
+        function removeTeamEverywhere(teamName) {
+            setData("teams", getData("teams", []).filter(function (t) { return t.name !== teamName; }));
+            setData("matches", getData("matches", []).filter(function (m) { return m.team1 !== teamName && m.team2 !== teamName; }));
+            var reqs = getData("joinRequests", []);
+            reqs.forEach(function (r) { if (r.status === "Assigned" && r.assignedTeam === teamName) { r.status = "Accepted"; r.assignedTeam = ""; } });
+            setData("joinRequests", reqs);
+            var players = getData("players", []);
+            players.forEach(function (p) { if (p.team === teamName) { p.team = ""; p.assignedBy = ""; } p.status = derivePlayerStatus(p, reqs); });
+            setData("players", players);
+        }
+        // Delete tournament: matches + requests go, players lose that tournament
+        function removeTournamentEverywhere(tid) {
+            setData("tournaments", getData("tournaments", []).filter(function (t) { return String(t.id) !== String(tid); }));
+            setData("matches", getData("matches", []).filter(function (m) { return String(m.tournamentId) !== String(tid); }));
+            var reqs = getData("joinRequests", []).filter(function (r) { return String(r.tournamentId) !== String(tid); });
+            setData("joinRequests", reqs);
+            var teams = getData("teams", []);
+            var players = getData("players", []);
+            players.forEach(function (p) {
+                if (String(p.tournamentId) === String(tid)) {
+                    teams.forEach(function (t) { if (t.name === p.team && t.captain === p.name) t.captain = ""; });
+                    p.team = ""; p.sport = ""; p.tournamentId = ""; p.tournamentName = ""; p.assignedBy = "";
+                }
+                p.status = derivePlayerStatus(p, reqs);
+            });
+            setData("players", players); setData("teams", teams);
+        }
+        // Teams that are playing in a tournament (from assigned players + matches)
+        function getTournamentTeams(tid) {
+            var names = [];
+            getData("joinRequests", []).forEach(function (r) {
+                if (String(r.tournamentId) === String(tid) && r.status === "Assigned" && r.assignedTeam && names.indexOf(r.assignedTeam) === -1) names.push(r.assignedTeam);
+            });
+            getData("matches", []).forEach(function (m) {
+                if (String(m.tournamentId) === String(tid)) [m.team1, m.team2].forEach(function (n) { if (n && names.indexOf(n) === -1) names.push(n); });
+            });
+            return names;
+        }
+        // Match result for one team: Won / Lost / Draw / -
+        function getResultForTeam(m, teamName) {
+            if (m.status !== "Completed") return "-";
+            if (!m.winner || String(m.winner).toLowerCase() == "draw") return "Draw";
+            return m.winner === teamName ? "Won" : "Lost";
+        }
+
+        // ---------- 7. Data repair - runs on every page load ----------
+        // Gives ids to old records, fixes email case, removes broken links
+        function migrateData() {
+            var users = getData("users", []), teams = getData("teams", []), tournaments = getData("tournaments", []);
+            var matches = getData("matches", []), grounds = getData("grounds", []), players = getData("players", []);
+            var reqs = getData("joinRequests", []);
+            teams.forEach(function (t) {
+                if (!t.id) t.id = newId();
+                if (!t.organizer) t.organizer = t.organizerEmail || t.createdBy || "";
+                if (t.sport === undefined) t.sport = "";
+                if (t.captain === undefined) t.captain = "";
+                if (t.city === undefined) t.city = "";
+            });
+            tournaments.forEach(function (t) { if (!t.id) t.id = newId(); if (!t.organizer) t.organizer = t.organizerEmail || t.createdBy || ""; t.organizer = normEmail(t.organizer); });
+            grounds.forEach(function (g) { if (!g.id) g.id = newId(); });
+            players.forEach(function (p) { p.email = normEmail(p.email); if (p.team === undefined) p.team = ""; if (p.sport === undefined) p.sport = ""; if (!p.role) p.role = "Player"; });
+            reqs.forEach(function (r) { r.playerEmail = normEmail(r.playerEmail); r.organizer = normEmail(r.organizer); if (r.assignedTeam === undefined) r.assignedTeam = ""; });
+            // requests of deleted tournaments are removed
+            reqs = reqs.filter(function (r) { return tournaments.some(function (t) { return String(t.id) === String(r.tournamentId); }); });
+            // requests assigned to a team that does not exist go back to Accepted
+            reqs.forEach(function (r) { if (r.status === "Assigned" && !teams.some(function (t) { return t.name === r.assignedTeam; })) { r.status = "Accepted"; r.assignedTeam = ""; } });
+            // every assigned request must have a player record with same team
+            reqs.forEach(function (r) {
+                var p = players.find(function (x) { return x.email === r.playerEmail; });
+                if (!p && (r.status === "Assigned" || r.status === "Accepted")) {
+                    p = { name: r.playerName, email: r.playerEmail, age: "", team: "", sport: r.sport, role: "Player", status: "Waiting", tournamentId: "", tournamentName: "", assignedBy: "", createdAt: new Date().toLocaleDateString() };
+                    players.push(p);
+                }
+                if (!p) return;
+                if (r.status === "Assigned") { p.team = r.assignedTeam; p.sport = r.sport; p.tournamentId = r.tournamentId; p.tournamentName = r.tournamentName; }
+                else if ((r.status === "Accepted" || r.status === "Pending") && !p.tournamentName) { p.tournamentId = r.tournamentId; p.tournamentName = r.tournamentName; p.sport = r.sport; }
+            });
+            players.forEach(function (p) {
+                if (p.team && !teams.some(function (t) { return t.name === p.team; })) p.team = "";     // team was deleted
+                p.status = derivePlayerStatus(p, reqs);
+            });
+            matches = matches.filter(function (m) {
+                var okTeams = teams.some(function (t) { return t.name === m.team1; }) && teams.some(function (t) { return t.name === m.team2; });
+                var okTour = !m.tournamentId || tournaments.some(function (t) { return String(t.id) === String(m.tournamentId); });
+                return okTeams && okTour;
+            });
+            matches.forEach(function (m, i) { if (!m.id) m.id = newId() + i; });
+            // Save only if something changed
+            var all = { users: users, teams: teams, tournaments: tournaments, matches: matches, grounds: grounds, players: players, joinRequests: reqs };
+            Object.keys(all).forEach(function (k) {
+                var s = JSON.stringify(all[k]);
+                if (localStorage.getItem(k) !== s) localStorage.setItem(k, s);
+            });
+            getSportTemplates();
+        }
+
+        // ---------- 8. Auto refresh when data changes in another tab ----------
+        window.addEventListener("storage", function () { if (ACCESS_OK && typeof refreshPage === "function") refreshPage(); });
+        window.addEventListener("pageshow", function (e) { if (e.persisted && ACCESS_OK && typeof refreshPage === "function") { migrateData(); refreshPage(); } });
+
+        if (ACCESS_OK) { migrateData(); renderNavbar(); }
+
+
+        var teams = [], players = [], matches = [], tournaments = [];
+        function loadAll() {
+            teams = getData("teams", []); players = getData("players", []);
+            matches = getData("matches", []); tournaments = getData("tournaments", []);
+        }
+
+        // Clear Old Data - old testing data is deleted (login accounts are safe)
+        function clearOldData() {
+            if (!requireManager()) return;
+            if (!confirm("Are you sure? This will delete ALL Teams, Matches, Tournaments, Players, Join Requests and Player Stats. Login accounts will stay safe.")) return;
+            localStorage.removeItem("teams");
+            localStorage.removeItem("matches");
+            localStorage.removeItem("tournaments");
+            localStorage.removeItem("joinRequests");
+            localStorage.removeItem("players");
+            localStorage.removeItem("playerStats");
+            localStorage.removeItem("playerStatsList");      // old key from previous version
+            alert("Old Data Cleared Successfully! Now create new Teams.");
+            location.reload();
+        }
+
+        // Delete single team from Stats page
+        function deleteTeamFromStats(teamId) {
+            if (!requireManager()) return;
+            loadAll();
+            var team = teams.find(function (t) { return String(t.id) === String(teamId); });
+            if (!team) return;
+            if (!confirm("Delete team '" + team.name + "' ? Its matches will also be deleted and its players removed from the team.")) return;
+            removeTeamEverywhere(team.name);
+            displayStats();
+            alert("Team Deleted Successfully!");
+        }
+
+        function loadTournamentFilter() {
+            fillSelect("filter-tournament", "All Tournaments", tournaments.map(function (t) { return { value: t.id, label: t.name + " (" + t.sport + ")" }; }));
+            document.getElementById("filter-tournament").options[0].value = "All";
+        }
+        function onTournamentChange() {
+            loadAll();
+            var tid = document.getElementById("filter-tournament").value;
+            if (tid !== "All") {
+                var t = tournaments.find(function (x) { return String(x.id) == String(tid); });
+                if (t) document.getElementById("filter-sport").value = isCustomSport(t.sport) ? "Other" : t.sport;
+            }
+            displayStats();
+        }
+
+        // Build points table data for every team
+        function getTeamStats(filterTournament) {
+            var stats = {};
+            teams.forEach(function (t) { stats[t.name] = { id: t.id, name: t.name, sport: t.sport || "-", color: t.color || "#ffcc00", played: 0, won: 0, lost: 0, draw: 0, points: 0, playerCount: 0, tournamentName: "-" }; });
+            players.forEach(function (p) { if (stats[p.team]) stats[p.team].playerCount++; });
+            var filteredMatches = matches;
+            if (filterTournament !== "All") filteredMatches = matches.filter(function (m) { return String(m.tournamentId) == String(filterTournament); });
+            filteredMatches.forEach(function (m) {
+                if (m.status != "Completed") return;
+                if (stats[m.team1]) { stats[m.team1].played++; if (m.tournamentName) stats[m.team1].tournamentName = m.tournamentName; }
+                if (stats[m.team2]) { stats[m.team2].played++; if (m.tournamentName) stats[m.team2].tournamentName = m.tournamentName; }
+                if (!m.winner || m.winner == "" || m.winner.toLowerCase() == "draw") {
+                    if (stats[m.team1]) { stats[m.team1].draw++; stats[m.team1].points += 1; }
+                    if (stats[m.team2]) { stats[m.team2].draw++; stats[m.team2].points += 1; }
+                } else if (stats[m.winner]) {
+                    stats[m.winner].won++; stats[m.winner].points += 2;
+                    var loser = (m.winner == m.team1) ? m.team2 : m.team1;
+                    if (stats[loser]) stats[loser].lost++;
+                }
+            });
+            return Object.keys(stats).map(function (k) { return stats[k]; });
+        }
+
+        function displayStats() {
+            loadAll();
+            var filterSport = document.getElementById("filter-sport").value;
+            var filterTournament = document.getElementById("filter-tournament").value;
+            var matchList = filterTournament === "All" ? matches : matches.filter(function (m) { return String(m.tournamentId) == String(filterTournament); });
+            document.getElementById("total-matches").innerText = matchList.length;
+            document.getElementById("upcoming-count").innerText = matchList.filter(function (m) { return m.status == "Upcoming"; }).length;
+            document.getElementById("live-count").innerText = matchList.filter(function (m) { return m.status == "Live"; }).length;
+            document.getElementById("completed-count").innerText = matchList.filter(function (m) { return m.status == "Completed"; }).length;
+
+            var allStats = getTeamStats(filterTournament);
+            var tourTeams = filterTournament === "All" ? null : getTournamentTeams(filterTournament);
+            var filtered = allStats.filter(function (s) {
+                if (tourTeams && tourTeams.indexOf(s.name) === -1) return false;     // only teams of that tournament
+                return sportMatches(s.sport === "-" ? "" : s.sport, filterSport);
+            });
+            filtered.sort(function (a, b) { if (b.points != a.points) return b.points - a.points; return b.won - a.won; });
+
+            var table = document.getElementById("points-table");
+            var emptyMsg = document.getElementById("empty-msg");
+            var info = document.getElementById("filter-info");
+            var tourName = "";
+            if (filterTournament !== "All") { var t = tournaments.find(function (x) { return String(x.id) == String(filterTournament); }); tourName = t ? " | Tournament: " + t.name : ""; }
+            info.innerText = "Showing: " + filterSport + tourName + " (" + filtered.length + " Teams)";
+            if (filtered.length == 0) { emptyMsg.style.display = "block"; emptyMsg.innerText = "No teams found for this sport."; } else { emptyMsg.style.display = "none"; }
+            var html = "";
+            filtered.forEach(function (s, i) {
+                html += '<tr><td>' + (i == 0 && s.points > 0 ? '<span class="rank-1">1st &#127942;</span>' : (i + 1)) + '</td><td><span class="team-name"><span class="color-dot" style="background:' + esc(s.color) + '"></span>' + esc(s.name) + '</span></td><td>' + esc(s.sport) + '</td><td>' + (filterTournament !== "All" ? esc(s.tournamentName) : "-") + '</td><td>' + s.played + '</td><td>' + s.won + '</td><td>' + s.lost + '</td><td>' + s.draw + '</td><td><b>' + s.points + '</b></td><td>' + (IS_MANAGER ? '<button class="btn-delete" onclick="deleteTeamFromStats(' + s.id + ')">Delete</button>' : '<span class="muted">-</span>') + '</td></tr>';
+            });
+            table.innerHTML = html;
+
+            // Top teams cards
+            if (filtered.length > 0) {
+                var mostWins = filtered.slice().sort(function (a, b) { return b.won - a.won; })[0];
+                var mostPlayers = filtered.slice().sort(function (a, b) { return b.playerCount - a.playerCount; })[0];
+                var mostPoints = filtered.slice().sort(function (a, b) { return b.points - a.points; })[0];
+                document.getElementById("top-wins").innerHTML = esc(mostWins.name) + ' <span>- ' + mostWins.won + ' Wins</span>';
+                document.getElementById("top-players").innerHTML = esc(mostPlayers.name) + ' <span>- ' + mostPlayers.playerCount + ' Players</span>';
+                document.getElementById("top-points").innerHTML = esc(mostPoints.name) + ' <span>- ' + mostPoints.points + ' Points</span>';
+            } else {
+                ["top-wins", "top-players", "top-points"].forEach(function (id) { document.getElementById(id).innerHTML = '- <span></span>'; });
+            }
+            displayTournamentStats();
+            displayResults(matchList);
+        }
+
+        // Tournament wise summary
+        function displayTournamentStats() {
+            var body = document.getElementById("tournament-table");
+            if (tournaments.length == 0) { body.innerHTML = '<tr><td colspan="7" class="empty-msg">No tournaments yet.</td></tr>'; return; }
+            var html = "";
+            tournaments.forEach(function (t) {
+                var tm = matches.filter(function (m) { return String(m.tournamentId) == String(t.id); });
+                var stats = getTeamStats(t.id).filter(function (s) { return getTournamentTeams(t.id).indexOf(s.name) !== -1; }).sort(function (a, b) { return b.points - a.points || b.won - a.won; });
+                var leader = stats.length && stats[0].points > 0 ? stats[0].name + " (" + stats[0].points + " pts)" : "-";
+                var pc = players.filter(function (p) { return String(p.tournamentId) == String(t.id) && p.team; }).length;
+                html += '<tr><td><b>' + esc(t.name) + '</b></td><td>' + esc(t.sport) + '</td><td>' + getTournamentTeams(t.id).length + '</td><td>' + pc + '</td><td>' + tm.length + '</td><td>' + tm.filter(function (m) { return m.status == "Completed"; }).length + '</td><td>' + esc(leader) + '</td></tr>';
+            });
+            body.innerHTML = html;
+        }
+
+        // Latest completed / live matches with score and winner
+        function displayResults(matchList) {
+            var box = document.getElementById("results-list");
+            var list = matchList.filter(function (m) { return m.status == "Completed" || m.status == "Live"; }).sort(function (a, b) { return String(b.date).localeCompare(String(a.date)); }).slice(0, 8);
+            if (list.length == 0) { box.innerHTML = '<p class="empty-msg">No results yet.</p>'; return; }
+            var html = "";
+            list.forEach(function (m) {
+                html += '<div class="result-row"><div><b>' + esc(m.team1) + ' ' + esc(m.scoreTeam1 || "-") + ' vs ' + esc(m.scoreTeam2 || "-") + ' ' + esc(m.team2) + '</b><br><span class="muted">' + esc(m.date) + ' | ' + esc(m.tournamentName || "Friendly") + ' | ' + esc(m.ground) + '</span></div><div>' + (m.winner ? '<span class="badge-green">Winner: ' + esc(m.winner) + '</span> ' : '') + '<span class="badge">' + esc(m.status) + '</span></div></div>';
+            });
+            box.innerHTML = html;
+        }
+
+        function refreshPage() { loadAll(); loadTournamentFilter(); displayStats(); }
+
+        if (ACCESS_OK) {
+            if (!IS_MANAGER) document.getElementById("btn-clear").style.display = "none";    // player can not clear data
+            loadAll();
+            // start with the first sport which has teams (Cricket by default)
+            var startSport = "Cricket";
+            if (!teams.some(function (t) { return t.sport === "Cricket"; })) {
+                var firstTeam = teams.find(function (t) { return t.sport; });
+                if (firstTeam) startSport = isCustomSport(firstTeam.sport) ? "Other" : firstTeam.sport;
+            }
+            document.getElementById("filter-sport").value = startSport;
+            loadTournamentFilter();
+            displayStats();
+        }
+    </script>
+</body>
+</html>
